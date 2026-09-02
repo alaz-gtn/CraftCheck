@@ -1,4 +1,4 @@
-# <img src="https://raw.githubusercontent.com/alaz-gtn/CraftCheck/main/assets/CraftCheck_icon_32.png" width="32" align="absmiddle"> CraftCheck
+# <img src="https://raw.githubusercontent.com/alaz-gtn/CraftCheck/main/assets/CraftCheck_icon_40.png" width="40" align="absmiddle"> CraftCheck
 
 **See instantly which of your characters can craft an item someone links in chat, and whisper them back in one click.**
 
