@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.9
+
+- Debug output is throttled so it no longer floods the chat on reload.
+
 ## v1.0.8
 
 - Fix: whisper detection had been failing silently since v1.0.4 because of a helper defined too late in the file (nil call error). Pasting from the panel into an open whisper now works.

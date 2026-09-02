@@ -699,9 +699,13 @@ local function RecordWhisperBox(eb)
     end
 end
 
+local lastDump = 0
 local function DumpEditBox(eb)
     if not ns.db or not ns.db.settings.debug or not eb then return end
     local okA, ctype = pcall(eb.GetAttribute, eb, "chatType")
+    -- Solo interesa cuando no es el chat normal; y como mucho una vez por segundo
+    if (not okA or ctype == "SAY" or ctype == nil) and (GetTime() - lastDump) < 1 then return end
+    lastDump = GetTime()
     local okB, tt = pcall(eb.GetAttribute, eb, "tellTarget")
     local header = eb.header and eb.header.GetText and eb.header:GetText()
     local mtype
