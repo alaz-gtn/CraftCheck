@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.2
+
+- Fix: clicking a character in the item tooltip opened the whisper but left it empty. The message is now inserted into the focused chat box and re-checked shortly after.
+- Added `/cc debug` to print diagnostics when reporting issues.
+
 ## v1.0.1
 
 - Profession panel: click an item to paste the whisper message (crafter + item link) into the open chat, for people who ask without linking. Shift-click still links the item only.
