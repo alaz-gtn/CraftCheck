@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.4
+
+- Fix: pasting from the profession panel now goes to the whisper you have open. The addon remembers the whisper target while the chat box is in whisper mode and reopens that whisper before pasting (Battle.net whispers supported too).
+
 ## v1.0.3
 
 - Fix: pasting the message from the profession panel went to /say instead of the whisper you had open. The addon now reactivates the last used chat box, keeping its whisper target.

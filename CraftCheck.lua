@@ -625,6 +625,46 @@ local function Debug(...)
     end
 end
 
+-- Recordar a quién está abierto el susurro (el juego lo pierde al reactivar el cuadro)
+ns.lastWhisper = nil   -- { target=, bn=, t= }
+
+local function RecordWhisperBox(eb)
+    if not eb or not eb.GetAttribute then return end
+    local ok, ctype = pcall(eb.GetAttribute, eb, "chatType")
+    if not ok or (ctype ~= "WHISPER" and ctype ~= "BN_WHISPER") then return end
+    local ok2, target = pcall(eb.GetAttribute, eb, "tellTarget")
+    if ok2 and type(target) == "string" and target ~= "" and not IsSecret(target) then
+        ns.lastWhisper = { target = target, bn = (ctype == "BN_WHISPER"), t = GetTime() }
+    end
+end
+
+function ns.HookChatEditBoxes()
+    for i = 1, (NUM_CHAT_WINDOWS or 10) do
+        local cf = _G["ChatFrame" .. i]
+        local eb = cf and cf.editBox
+        if eb and not eb.craftCheckHooked then
+            eb.craftCheckHooked = true
+            eb:HookScript("OnEditFocusGained", RecordWhisperBox)
+            eb:HookScript("OnTextChanged", RecordWhisperBox)
+            eb:HookScript("OnEditFocusLost", RecordWhisperBox)
+        end
+    end
+end
+
+-- Destinatario del susurro que el usuario tiene abierto ahora mismo (o acaba de tener)
+function ns.GetOpenWhisperTarget()
+    local eb = GetLastActiveEditBox()
+    if eb then RecordWhisperBox(eb) end
+    local lw = ns.lastWhisper
+    if not lw then return nil end
+    local age = GetTime() - lw.t
+    local shown = eb and eb:IsShown()
+    if age <= 600 and (shown or age <= 120) then
+        return lw.target, lw.bn
+    end
+    return nil
+end
+
 local function ChatLocked()
     return C_ChatInfo and C_ChatInfo.InChatMessagingLockdown and C_ChatInfo.InChatMessagingLockdown()
 end
@@ -666,10 +706,20 @@ end
 -- si no se sabe, pega el mensaje en el chat activo.
 function ns.WhisperMessage(charKey, itemID, itemLink, target)
     local msg = ns.BuildChatMessage(charKey, itemLink)
+    local bn = false
+    if not target then
+        target, bn = ns.GetOpenWhisperTarget()
+        Debug("open whisper target=" .. tostring(target), "bn=" .. tostring(bn))
+    end
     target = target or ns.GetRecentLinker(itemID)
     if ChatLocked() then print(L.CHAT_LOCKDOWN) return end
     if target then
-        local sendTell = ChatFn("SendTell", "ChatFrame_SendTell")
+        local sendTell
+        if bn then
+            sendTell = ChatFn("SendBNetTell", "ChatFrame_SendBNetTell")
+        else
+            sendTell = ChatFn("SendTell", "ChatFrame_SendTell")
+        end
         local openChat = ChatFn("OpenChat", "ChatFrame_OpenChat")
         Debug("target=" .. tostring(target), "SendTell=" .. tostring(sendTell ~= nil), "OpenChat=" .. tostring(openChat ~= nil))
         local opened = false
@@ -678,7 +728,7 @@ function ns.WhisperMessage(charKey, itemID, itemLink, target)
             opened = ok
             if not ok then Debug("SendTell error: " .. tostring(err)) end
         end
-        if not opened and openChat then
+        if not opened and openChat and not bn then
             local ok, err = pcall(openChat, "/w " .. target .. " ")
             opened = ok
             if not ok then Debug("OpenChat error: " .. tostring(err)) end
@@ -1033,6 +1083,7 @@ frame:SetScript("OnEvent", function(self, event, arg1, arg2)
         end
         HookItemRefTooltip()
         HookChatFrames()
+        ns.HookChatEditBoxes()
     elseif event == "PLAYER_LOGIN" then
         local c = ns.GetCharEntry()
         if c then PruneProfessions(c) end
