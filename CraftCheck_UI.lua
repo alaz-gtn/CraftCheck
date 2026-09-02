@@ -485,7 +485,7 @@ local function CreatePanel()
     msgBox:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
     -- Ayuda
-    local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     hint:SetPoint("BOTTOM", frame, "BOTTOM", 0, 16)
     hint:SetText(L.HINT)
 end
