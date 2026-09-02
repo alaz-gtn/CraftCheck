@@ -598,18 +598,22 @@ local function GetActiveEditBox()
 end
 
 -- Último cuadro de chat que estuvo activo (p. ej. un susurro abierto que perdió el foco al pulsar en el panel)
+ns.lastFocusedEditBox = nil
+
 local function GetLastActiveEditBox()
+    local last = ns.lastFocusedEditBox
+    if last and last.IsShown and last:IsShown() then return last end
     local f = ChatFn("GetLastActiveWindow", "ChatEdit_GetLastActiveWindow")
     if f then
         local ok, eb = pcall(f)
         if ok and eb then return eb end
     end
-    for i = 1, (NUM_CHAT_WINDOWS or 10) do
+    for i = 1, 20 do
         local cf = _G["ChatFrame" .. i]
         local eb = cf and cf.editBox
         if eb and eb:IsShown() then return eb end
     end
-    return nil
+    return last
 end
 
 -- Cuadro de edición con el foco del teclado (la forma más fiable de saber dónde escribir)
@@ -653,6 +657,22 @@ local function RecordWhisperBox(eb)
             if ok2 then SetLastWhisper(target, ctype == "BN_WHISPER", "attribute") return end
         end
     end
+    -- 1b) Métodos del mixin de 12.x
+    if type(eb.GetChatType) == "function" then
+        local ok, ctype = pcall(eb.GetChatType, eb)
+        if ok and (ctype == "WHISPER" or ctype == "BN_WHISPER") then
+            local target
+            if type(eb.GetTellTarget) == "function" then
+                local ok2, t = pcall(eb.GetTellTarget, eb)
+                if ok2 then target = t end
+            end
+            if not target and eb.GetAttribute then
+                local ok3, t = pcall(eb.GetAttribute, eb, "tellTarget")
+                if ok3 then target = t end
+            end
+            if target then SetLastWhisper(target, ctype == "BN_WHISPER", "method") return end
+        end
+    end
     -- 2) Campos directos
     if (eb.chatType == "WHISPER" or eb.chatType == "BN_WHISPER") and eb.tellTarget then
         SetLastWhisper(eb.tellTarget, eb.chatType == "BN_WHISPER", "field")
@@ -673,7 +693,10 @@ local function DumpEditBox(eb)
     local okA, ctype = pcall(eb.GetAttribute, eb, "chatType")
     local okB, tt = pcall(eb.GetAttribute, eb, "tellTarget")
     local header = eb.header and eb.header.GetText and eb.header:GetText()
+    local mtype
+    if type(eb.GetChatType) == "function" then local okM, v = pcall(eb.GetChatType, eb); mtype = okM and v end
     Debug("editbox " .. tostring(eb:GetName()),
+        "GetChatType=" .. tostring(mtype),
         "attr chatType=" .. tostring(okA and ctype),
         "attr tellTarget=" .. tostring(okB and (IsSecret(tt) and "<secret>" or tt)),
         "field chatType=" .. tostring(eb.chatType),
@@ -681,17 +704,25 @@ local function DumpEditBox(eb)
 end
 
 function ns.HookChatEditBoxes()
-    local hooked = 0
-    for i = 1, (NUM_CHAT_WINDOWS or 10) do
-        local cf = _G["ChatFrame" .. i]
-        local eb = cf and cf.editBox
-        if eb and not eb.craftCheckHooked then
-            eb.craftCheckHooked = true
-            eb:HookScript("OnEditFocusGained", function(self) DumpEditBox(self); RecordWhisperBox(self) end)
-            eb:HookScript("OnTextChanged", RecordWhisperBox)
-            eb:HookScript("OnEditFocusLost", RecordWhisperBox)
-            hooked = hooked + 1
-        end
+    -- Callbacks oficiales (no HookScript sobre el cuadro: contaminaría el envío de mensajes)
+    if EventRegistry and EventRegistry.RegisterCallback then
+        EventRegistry:RegisterCallback("ChatFrame.OnEditBoxFocusGained", function(_, eb)
+            ns.lastFocusedEditBox = eb
+            DumpEditBox(eb)
+            RecordWhisperBox(eb)
+        end, "CraftCheckFocusGained")
+        EventRegistry:RegisterCallback("ChatFrame.OnEditBoxFocusLost", function(_, eb)
+            RecordWhisperBox(eb)
+        end, "CraftCheckFocusLost")
+        EventRegistry:RegisterCallback("ChatFrame.OnEditBoxShow", function(_, eb)
+            RecordWhisperBox(eb)
+        end, "CraftCheckShow")
+        EventRegistry:RegisterCallback("ChatFrame.OnEditBoxPreSendText", function(_, eb)
+            RecordWhisperBox(eb)
+        end, "CraftCheckPreSend")
+        Debug("EventRegistry chat callbacks registered")
+    else
+        Debug("EventRegistry not available")
     end
     -- Funciones del juego que abren un susurro (click en un nombre, /w, respuesta)
     if ChatFrameUtil then
@@ -705,7 +736,6 @@ function ns.HookChatEditBoxes()
     if type(ChatFrame_SendTell) == "function" then
         hooksecurefunc("ChatFrame_SendTell", function(name) SetLastWhisper(name, false, "ChatFrame_SendTell") end)
     end
-    Debug("edit boxes hooked: " .. hooked)
 end
 
 -- Destinatario del susurro que el usuario tiene abierto ahora mismo (o acaba de tener)

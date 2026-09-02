@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.6
+
+- Whisper detection now uses Blizzard's official chat edit box callbacks, which cover every chat window including temporary whisper windows, and no longer hooks the edit box directly (avoids tainting chat sends).
+
 ## v1.0.5
 
 - More robust detection of the whisper you have open (hooks the game's whisper-open function, reads the chat box header, and records whispers you send), so pasting from the panel lands in that whisper.
