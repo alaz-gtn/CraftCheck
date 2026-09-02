@@ -8,7 +8,7 @@
 ## SavedVariables: CraftCheckDB
 ## X-Category: Professions
 ## X-License: MIT
-## X-Curse-Project-ID: 000000
+## X-Curse-Project-ID: 1679002
 ## X-Website: https://www.curseforge.com/wow/addons/craftcheck
 
 CraftCheck.lua
