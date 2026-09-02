@@ -1,0 +1,15 @@
+## Interface: 120100, 120007, 120005, 120001, 120000
+## Title: CraftCheck
+## Notes: Muestra qué personajes tuyos (del mismo grupo de reinos) pueden fabricar un objeto.
+## Notes-esES: Muestra qué personajes tuyos (del mismo grupo de reinos) pueden fabricar un objeto.
+## Author: aaznar
+## Version: @project-version@
+## IconTexture: Interface\AddOns\CraftCheck\icon
+## SavedVariables: CraftCheckDB
+## X-Category: Professions
+## X-License: MIT
+## X-Curse-Project-ID: 000000
+## X-Website: https://www.curseforge.com/wow/addons/craftcheck
+
+CraftCheck.lua
+CraftCheck_UI.lua

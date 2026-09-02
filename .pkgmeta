@@ -1,0 +1,12 @@
+package-as: CraftCheck
+
+enable-nolib-creation: no
+
+manual-changelog: CHANGELOG.md
+
+ignore:
+  - README.md
+  - CHANGELOG.md
+  - assets
+  - .github
+  - .gitignore
