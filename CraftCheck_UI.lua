@@ -293,7 +293,7 @@ end
 -------------------------------------------------------------------------------
 local function CreatePanel()
     frame = CreateFrame("Frame", "CraftCheckFrame", UIParent, "BackdropTemplate")
-    frame:SetSize(FRAME_W, 70 + NUM_ROWS * ROW_HEIGHT + 100)
+    frame:SetSize(FRAME_W, 70 + NUM_ROWS * ROW_HEIGHT + 84)
     frame:SetPoint("CENTER")
     frame:SetFrameStrata("HIGH")
     frame:SetBackdrop({
@@ -376,7 +376,7 @@ local function CreatePanel()
     -- Contenedor de lista
     listFrame = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     listFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, -80)
-    listFrame:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -40, 80)
+    listFrame:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -40, 66)
     listFrame:SetBackdrop({
         bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -446,7 +446,7 @@ local function CreatePanel()
 
     -- Editor del mensaje de susurro
     local msgLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    msgLabel:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 24, 52)
+    msgLabel:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 24, 40)
     msgLabel:SetText(L.MSG_LABEL)
 
     msgBox = CreateFrame("EditBox", "CraftCheckMsgBox", frame, "InputBoxTemplate")
@@ -473,13 +473,17 @@ local function CreatePanel()
         self:ClearFocus()
     end)
 
-    local msgHelp = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    msgHelp:SetPoint("TOPLEFT", msgLabel, "BOTTOMLEFT", 0, -6)
-    msgHelp:SetText(L.MSG_HELP)
+    msgBox:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetText(L.MSG_LABEL, 1, 0.82, 0)
+        GameTooltip:AddLine(L.MSG_HELP, 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    msgBox:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
     -- Ayuda
     local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    hint:SetPoint("BOTTOM", frame, "BOTTOM", 0, 18)
+    hint:SetPoint("BOTTOM", frame, "BOTTOM", 0, 16)
     hint:SetText(L.HINT)
 end
 
