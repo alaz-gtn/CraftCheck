@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.5
+
+- More robust detection of the whisper you have open (hooks the game's whisper-open function, reads the chat box header, and records whispers you send), so pasting from the panel lands in that whisper.
+- `/cc debug` now dumps the chat box state when it gains focus, to diagnose whisper detection.
+
 ## v1.0.4
 
 - Fix: pasting from the profession panel now goes to the whisper you have open. The addon remembers the whisper target while the chat box is in whisper mode and reopens that whisper before pasting (Battle.net whispers supported too).

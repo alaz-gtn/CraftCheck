@@ -628,27 +628,84 @@ end
 -- Recordar a quién está abierto el susurro (el juego lo pierde al reactivar el cuadro)
 ns.lastWhisper = nil   -- { target=, bn=, t= }
 
+local function SetLastWhisper(target, bn, source)
+    if IsSecret(target) or type(target) ~= "string" or target == "" then return end
+    ns.lastWhisper = { target = target, bn = bn and true or false, t = GetTime() }
+    Debug("whisper target captured: " .. target .. " (" .. tostring(source) .. ")")
+end
+
+-- Convierte una cadena global como "Tell %s:" en un patrón de captura
+local function HeaderPattern(fmt)
+    if type(fmt) ~= "string" then return nil end
+    local pat = fmt:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1"):gsub("%%%%s", "(.+)")
+    return "^" .. pat .. "$"
+end
+local WHISPER_HEADER_PAT = HeaderPattern(CHAT_WHISPER_SEND)
+local BN_HEADER_PAT = HeaderPattern(CHAT_BN_WHISPER_SEND)
+
 local function RecordWhisperBox(eb)
-    if not eb or not eb.GetAttribute then return end
-    local ok, ctype = pcall(eb.GetAttribute, eb, "chatType")
-    if not ok or (ctype ~= "WHISPER" and ctype ~= "BN_WHISPER") then return end
-    local ok2, target = pcall(eb.GetAttribute, eb, "tellTarget")
-    if ok2 and type(target) == "string" and target ~= "" and not IsSecret(target) then
-        ns.lastWhisper = { target = target, bn = (ctype == "BN_WHISPER"), t = GetTime() }
+    if not eb then return end
+    -- 1) Atributos del cuadro
+    if eb.GetAttribute then
+        local ok, ctype = pcall(eb.GetAttribute, eb, "chatType")
+        if ok and (ctype == "WHISPER" or ctype == "BN_WHISPER") then
+            local ok2, target = pcall(eb.GetAttribute, eb, "tellTarget")
+            if ok2 then SetLastWhisper(target, ctype == "BN_WHISPER", "attribute") return end
+        end
+    end
+    -- 2) Campos directos
+    if (eb.chatType == "WHISPER" or eb.chatType == "BN_WHISPER") and eb.tellTarget then
+        SetLastWhisper(eb.tellTarget, eb.chatType == "BN_WHISPER", "field")
+        return
+    end
+    -- 3) Rótulo "Susurrar a Nombre:"
+    local header = eb.header and eb.header.GetText and eb.header:GetText()
+    if type(header) == "string" and not IsSecret(header) and header ~= "" then
+        local name = WHISPER_HEADER_PAT and header:match(WHISPER_HEADER_PAT)
+        if name then SetLastWhisper(strtrim(name), false, "header") return end
+        name = BN_HEADER_PAT and header:match(BN_HEADER_PAT)
+        if name then SetLastWhisper(strtrim(name), true, "header") return end
     end
 end
 
+local function DumpEditBox(eb)
+    if not ns.db or not ns.db.settings.debug or not eb then return end
+    local okA, ctype = pcall(eb.GetAttribute, eb, "chatType")
+    local okB, tt = pcall(eb.GetAttribute, eb, "tellTarget")
+    local header = eb.header and eb.header.GetText and eb.header:GetText()
+    Debug("editbox " .. tostring(eb:GetName()),
+        "attr chatType=" .. tostring(okA and ctype),
+        "attr tellTarget=" .. tostring(okB and (IsSecret(tt) and "<secret>" or tt)),
+        "field chatType=" .. tostring(eb.chatType),
+        "header=" .. tostring(IsSecret(header) and "<secret>" or header))
+end
+
 function ns.HookChatEditBoxes()
+    local hooked = 0
     for i = 1, (NUM_CHAT_WINDOWS or 10) do
         local cf = _G["ChatFrame" .. i]
         local eb = cf and cf.editBox
         if eb and not eb.craftCheckHooked then
             eb.craftCheckHooked = true
-            eb:HookScript("OnEditFocusGained", RecordWhisperBox)
+            eb:HookScript("OnEditFocusGained", function(self) DumpEditBox(self); RecordWhisperBox(self) end)
             eb:HookScript("OnTextChanged", RecordWhisperBox)
             eb:HookScript("OnEditFocusLost", RecordWhisperBox)
+            hooked = hooked + 1
         end
     end
+    -- Funciones del juego que abren un susurro (click en un nombre, /w, respuesta)
+    if ChatFrameUtil then
+        if type(ChatFrameUtil.SendTell) == "function" then
+            hooksecurefunc(ChatFrameUtil, "SendTell", function(name) SetLastWhisper(name, false, "SendTell") end)
+        end
+        if type(ChatFrameUtil.SendBNetTell) == "function" then
+            hooksecurefunc(ChatFrameUtil, "SendBNetTell", function(name) SetLastWhisper(name, true, "SendBNetTell") end)
+        end
+    end
+    if type(ChatFrame_SendTell) == "function" then
+        hooksecurefunc("ChatFrame_SendTell", function(name) SetLastWhisper(name, false, "ChatFrame_SendTell") end)
+    end
+    Debug("edit boxes hooked: " .. hooked)
 end
 
 -- Destinatario del susurro que el usuario tiene abierto ahora mismo (o acaba de tener)
@@ -1059,6 +1116,7 @@ frame:RegisterEvent("TRADE_SKILL_DATA_SOURCE_CHANGED")
 frame:RegisterEvent("SKILL_LINES_CHANGED")
 frame:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
 frame:RegisterEvent("PLAYER_LOGOUT")
+frame:RegisterEvent("CHAT_MSG_WHISPER_INFORM")
 local CHAT_EVENTS = {
     "CHAT_MSG_SAY", "CHAT_MSG_YELL", "CHAT_MSG_CHANNEL", "CHAT_MSG_GUILD", "CHAT_MSG_OFFICER",
     "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER", "CHAT_MSG_RAID", "CHAT_MSG_RAID_LEADER",
@@ -1067,6 +1125,10 @@ local CHAT_EVENTS = {
 for _, ev in ipairs(CHAT_EVENTS) do frame:RegisterEvent(ev) end
 
 frame:SetScript("OnEvent", function(self, event, arg1, arg2)
+    if event == "CHAT_MSG_WHISPER_INFORM" then
+        SetLastWhisper(arg2, false, "sent whisper")
+        return
+    end
     if event:sub(1, 9) == "CHAT_MSG_" then
         OnChatMessage(arg1, arg2)
         return
