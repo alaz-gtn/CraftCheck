@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.3
+
+- Fix: pasting the message from the profession panel went to /say instead of the whisper you had open. The addon now reactivates the last used chat box, keeping its whisper target.
+
 ## v1.0.2
 
 - Fix: clicking a character in the item tooltip opened the whisper but left it empty. The message is now inserted into the focused chat box and re-checked shortly after.

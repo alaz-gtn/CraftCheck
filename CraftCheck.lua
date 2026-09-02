@@ -597,6 +597,21 @@ local function GetActiveEditBox()
     return nil
 end
 
+-- Último cuadro de chat que estuvo activo (p. ej. un susurro abierto que perdió el foco al pulsar en el panel)
+local function GetLastActiveEditBox()
+    local f = ChatFn("GetLastActiveWindow", "ChatEdit_GetLastActiveWindow")
+    if f then
+        local ok, eb = pcall(f)
+        if ok and eb then return eb end
+    end
+    for i = 1, (NUM_CHAT_WINDOWS or 10) do
+        local cf = _G["ChatFrame" .. i]
+        local eb = cf and cf.editBox
+        if eb and eb:IsShown() then return eb end
+    end
+    return nil
+end
+
 -- Cuadro de edición con el foco del teclado (la forma más fiable de saber dónde escribir)
 local function FocusedEditBox()
     local f = GetCurrentKeyBoardFocus and GetCurrentKeyBoardFocus()
@@ -695,12 +710,17 @@ function ns.InsertChatText(text)
     if ChatLocked() then print(L.CHAT_LOCKDOWN) return end
     local eb = FocusedEditBox()
     if not eb then
-        local choose = ChatFn("ChooseBoxForSend", "ChatEdit_ChooseBoxForSend")
-        if choose then
-            local ok, box = pcall(choose)
-            if ok then eb = box end
+        -- Un susurro abierto que perdió el foco al pulsar en el panel: lo reactivamos y conserva su destinatario
+        eb = GetLastActiveEditBox()
+        Debug("InsertChatText: last active box=" .. tostring(eb and eb:GetName() or eb))
+        if not eb then
+            local choose = ChatFn("ChooseBoxForSend", "ChatEdit_ChooseBoxForSend")
+            if choose then
+                local ok, box = pcall(choose)
+                if ok then eb = box end
+            end
+            eb = eb or (DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.editBox)
         end
-        eb = eb or (DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.editBox)
         local activate = ChatFn("ActivateChat", "ChatEdit_ActivateChat")
         if eb and activate then pcall(activate, eb) end
     end
