@@ -29,7 +29,7 @@ if isES then
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: información en tooltip |cffff0000desactivada|r.",
         DELETED        = "|cff33ff99CraftCheck|r: personaje %s eliminado.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: no se encontró el personaje %s.",
-        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del botón Chat ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje",
+        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje",
         LIST_HEADER    = "|cff33ff99CraftCheck|r personajes guardados:",
         UNKNOWN_REALM  = "Reino desconocido",
         CONC           = "Concentración",
@@ -41,10 +41,10 @@ if isES then
         MSG_LABEL      = "Mensaje del susurro:",
         CHAT_LOCKDOWN  = "|cff33ff99CraftCheck|r: el chat está bloqueado ahora mismo, no se puede escribir el mensaje.",
         INSERT_FAIL    = "|cff33ff99CraftCheck|r: no se pudo abrir el cuadro de chat. Mensaje: %s",
-        MSG_HELP       = "{personaje} = Nombre-Reino del fabricante, {objeto} = enlace del objeto a calidad máxima (si falta, se añade al final). Intro para guardar.",
+        MSG_HELP       = "{personaje} o {character} = Nombre-Reino del fabricante, {objeto} o {item} = enlace del objeto a calidad máxima (si falta, se añade al final). Intro para guardar.",
         MSG_DEFAULT    = "Yo lo crafteo, puedes enviárselo a \"{personaje}\" por la voluntad :) {objeto}",
         MSG_CURRENT    = "|cff33ff99CraftCheck|r mensaje actual: %s",
-        MSG_SET        = "|cff33ff99CraftCheck|r mensaje guardado. Marcadores: {personaje} = Nombre-Reino, {objeto} = enlace del objeto (solo desde una fila de objeto).",
+        MSG_SET        = "|cff33ff99CraftCheck|r mensaje guardado. Marcadores: {personaje} = Nombre-Reino, {objeto} = enlace del objeto.",
         MSG_RESET      = "|cff33ff99CraftCheck|r mensaje restablecido al valor por defecto.",
     }
 else
@@ -67,7 +67,7 @@ else
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: tooltip info |cffff0000disabled|r.",
         DELETED        = "|cff33ff99CraftCheck|r: character %s removed.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: character %s not found.",
-        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the Chat button message ({personaje}, {objeto})\n  /cc message reset - reset the message",
+        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message",
         LIST_HEADER    = "|cff33ff99CraftCheck|r saved characters:",
         UNKNOWN_REALM  = "Unknown realm",
         CONC           = "Concentration",
@@ -79,10 +79,10 @@ else
         MSG_LABEL      = "Whisper message:",
         CHAT_LOCKDOWN  = "|cff33ff99CraftCheck|r: chat is locked down right now, the message cannot be typed.",
         INSERT_FAIL    = "|cff33ff99CraftCheck|r: could not open the chat box. Message: %s",
-        MSG_HELP       = "{personaje} = crafter Name-Realm, {objeto} = max-quality item link (appended at the end if missing). Enter to save.",
-        MSG_DEFAULT    = "I can craft it, send the order to \"{personaje}\" for a tip :) {objeto}",
+        MSG_HELP       = "{character} or {personaje} = crafter Name-Realm, {item} or {objeto} = max-quality item link (appended at the end if missing). Enter to save.",
+        MSG_DEFAULT    = "I can craft it, send the order to \"{character}\" for a tip :) {item}",
         MSG_CURRENT    = "|cff33ff99CraftCheck|r current message: %s",
-        MSG_SET        = "|cff33ff99CraftCheck|r message saved. Placeholders: {personaje} = Name-Realm, {objeto} = item link (only from an item row).",
+        MSG_SET        = "|cff33ff99CraftCheck|r message saved. Placeholders: {character} = Name-Realm, {item} = item link.",
         MSG_RESET      = "|cff33ff99CraftCheck|r message reset to default.",
     }
 end
@@ -550,18 +550,28 @@ end
 -------------------------------------------------------------------------------
 -- Mensaje de chat ("Yo lo crafteo...")
 -------------------------------------------------------------------------------
+-- Marcadores admitidos (sin distinguir mayúsculas): {personaje} {character} {char} {pj} y {objeto} {item} {link}
+local PLACEHOLDERS = {
+    personaje = "char", character = "char", char = "char", pj = "char",
+    objeto = "item", item = "item", link = "item",
+}
+
 function ns.BuildChatMessage(charKey, itemLink)
     local template = ns.db.settings.msgTemplate or L.MSG_DEFAULT
-    local charText = charKey or "?"
-    local itemText = itemLink or ""
+    local values = { char = charKey or "?", item = itemLink or "" }
+    local hasItem = false
+    for key in template:gmatch("{(%a+)}") do
+        if PLACEHOLDERS[key:lower()] == "item" then hasItem = true end
+    end
     local msg = template
-    msg = msg:gsub("{personaje}", function() return charText end)
-    msg = msg:gsub("{char}", function() return charText end)
-    if itemText ~= "" and not msg:find("{objeto}", 1, true) and not msg:find("{item}", 1, true) then
+    if values.item ~= "" and not hasItem then
         msg = msg .. " {objeto}"
     end
-    msg = msg:gsub("{objeto}", function() return itemText end)
-    msg = msg:gsub("{item}", function() return itemText end)
+    msg = msg:gsub("{(%a+)}", function(key)
+        local kind = PLACEHOLDERS[key:lower()]
+        if kind then return values[kind] end
+        return nil
+    end)
     return (msg:gsub("%s+$", ""))
 end
 
