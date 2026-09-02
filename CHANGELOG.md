@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.1
+
+- Profession panel: click an item to paste the whisper message (crafter + item link) into the open chat, for people who ask without linking. Shift-click still links the item only.
+- Message placeholders now accept English and Spanish names in any case: {character}/{personaje}, {item}/{objeto}.
+- Placeholder help moved into a tooltip on the message box; panel layout compacted and hint line made readable.
+- In-game icon switched to TGA so it renders correctly.
+
 ## v1.0.0
 
 - Initial release.
