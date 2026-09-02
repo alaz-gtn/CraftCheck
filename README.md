@@ -33,6 +33,7 @@ Open each profession once on each character (and each expansion tab). CraftCheck
 - `/cc delete Name-Realm` – remove a character
 - `/cc scan` – force a rescan of the open profession
 - `/cc message <text>` – set the whisper message (`{character}` = crafter Name-Realm, `{item}` = item link; Spanish `{personaje}` / `{objeto}` also work)
+- `/cc selfmessage <text>` – message used when the crafter is the character you are playing
 
 ## Support
 

@@ -10,7 +10,7 @@ local FRAME_W    = 640
 local INDENT     = 18
 local MSG_BTN_W  = 56
 
-local frame, rows, slider, listFrame, searchBox, searchHint, onlyGroupCheck, gearOnlyCheck, msgBox
+local frame, rows, slider, listFrame, searchBox, searchHint, onlyGroupCheck, gearOnlyCheck, msgBox, msgSelfBox
 local lines      = {}     -- filas visibles calculadas
 local expanded   = {}     -- clave -> true/false (estado de despliegue en esta sesión)
 local offset     = 0
@@ -296,7 +296,7 @@ end
 -------------------------------------------------------------------------------
 local function CreatePanel()
     frame = CreateFrame("Frame", "CraftCheckFrame", UIParent, "BackdropTemplate")
-    frame:SetSize(FRAME_W, 70 + NUM_ROWS * ROW_HEIGHT + 84)
+    frame:SetSize(FRAME_W, 70 + NUM_ROWS * ROW_HEIGHT + 110)
     frame:SetPoint("CENTER")
     frame:SetFrameStrata("HIGH")
     frame:SetBackdrop({
@@ -379,7 +379,7 @@ local function CreatePanel()
     -- Contenedor de lista
     listFrame = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     listFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, -80)
-    listFrame:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -40, 66)
+    listFrame:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -40, 92)
     listFrame:SetBackdrop({
         bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -449,7 +449,7 @@ local function CreatePanel()
 
     -- Editor del mensaje de susurro
     local msgLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    msgLabel:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 24, 40)
+    msgLabel:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 24, 66)
     msgLabel:SetText(L.MSG_LABEL)
 
     msgBox = CreateFrame("EditBox", "CraftCheckMsgBox", frame, "InputBoxTemplate")
@@ -483,6 +483,43 @@ local function CreatePanel()
         GameTooltip:Show()
     end)
     msgBox:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+    -- Mensaje cuando el fabricante es el personaje actual
+    local msgSelfLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    msgSelfLabel:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 24, 40)
+    msgSelfLabel:SetText(L.MSG_SELF_LABEL)
+
+    msgSelfBox = CreateFrame("EditBox", "CraftCheckMsgSelfBox", frame, "InputBoxTemplate")
+    msgSelfBox:SetHeight(22)
+    msgSelfBox:SetPoint("LEFT", msgBox, "LEFT", 0, 0)
+    msgSelfBox:SetPoint("RIGHT", frame, "RIGHT", -24, 0)
+    msgSelfBox:SetPoint("TOP", msgSelfLabel, "TOP", 0, 4)
+    msgSelfBox:SetAutoFocus(false)
+    msgSelfBox:SetMaxLetters(240)
+    msgSelfBox:SetText(ns.db.settings.msgTemplateSelf or L.MSG_SELF_DEFAULT)
+    local function SaveSelfMsg(self)
+        local t = strtrim(self:GetText() or "")
+        if t == "" then
+            ns.db.settings.msgTemplateSelf = nil
+            self:SetText(L.MSG_SELF_DEFAULT)
+        else
+            ns.db.settings.msgTemplateSelf = t
+        end
+        self:ClearFocus()
+    end
+    msgSelfBox:SetScript("OnEnterPressed", SaveSelfMsg)
+    msgSelfBox:SetScript("OnEditFocusLost", SaveSelfMsg)
+    msgSelfBox:SetScript("OnEscapePressed", function(self)
+        self:SetText(ns.db.settings.msgTemplateSelf or L.MSG_SELF_DEFAULT)
+        self:ClearFocus()
+    end)
+    msgSelfBox:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetText(L.MSG_SELF_LABEL, 1, 0.82, 0)
+        GameTooltip:AddLine(L.MSG_SELF_HELP, 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    msgSelfBox:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
     -- Ayuda
     local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")

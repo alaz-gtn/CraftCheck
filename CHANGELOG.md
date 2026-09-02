@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.0
+
+- New: a separate whisper message for when the crafter is the character you are playing (default: "I can craft it, send me the order for a tip :)"). Editable in the panel ("If it's me") or with `/cc selfmessage`.
+
 ## v1.0.9
 
 - Debug output is throttled so it no longer floods the chat on reload.

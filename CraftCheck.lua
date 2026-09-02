@@ -29,7 +29,7 @@ if isES then
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: información en tooltip |cffff0000desactivada|r.",
         DELETED        = "|cff33ff99CraftCheck|r: personaje %s eliminado.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: no se encontró el personaje %s.",
-        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje",
+        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú",
         LIST_HEADER    = "|cff33ff99CraftCheck|r personajes guardados:",
         UNKNOWN_REALM  = "Reino desconocido",
         CONC           = "Concentración",
@@ -39,6 +39,10 @@ if isES then
         TIP_CLICK_HINT = "Click en un personaje para susurrar el mensaje",
         TIP_WHISPER_TO = "Susurro a: %s",
         MSG_LABEL      = "Mensaje del susurro:",
+        MSG_SELF_LABEL = "Si soy yo:",
+        MSG_SELF_DEFAULT = "Yo lo crafteo, envíamela por la voluntad :) {objeto}",
+        MSG_SELF_HELP  = "Se usa cuando el fabricante es el personaje con el que estás jugando. Mismos marcadores. Intro para guardar.",
+        MSG_SELF_CURRENT = "|cff33ff99CraftCheck|r mensaje (si soy yo) actual: %s",
         CHAT_LOCKDOWN  = "|cff33ff99CraftCheck|r: el chat está bloqueado ahora mismo, no se puede escribir el mensaje.",
         INSERT_FAIL    = "|cff33ff99CraftCheck|r: no se pudo abrir el cuadro de chat. Mensaje: %s",
         MSG_HELP       = "{personaje} o {character} = Nombre-Reino del fabricante, {objeto} o {item} = enlace del objeto a calidad máxima (si falta, se añade al final). Intro para guardar.",
@@ -67,7 +71,7 @@ else
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: tooltip info |cffff0000disabled|r.",
         DELETED        = "|cff33ff99CraftCheck|r: character %s removed.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: character %s not found.",
-        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message",
+        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you",
         LIST_HEADER    = "|cff33ff99CraftCheck|r saved characters:",
         UNKNOWN_REALM  = "Unknown realm",
         CONC           = "Concentration",
@@ -77,6 +81,10 @@ else
         TIP_CLICK_HINT = "Click a character to whisper the message",
         TIP_WHISPER_TO = "Whisper to: %s",
         MSG_LABEL      = "Whisper message:",
+        MSG_SELF_LABEL = "If it's me:",
+        MSG_SELF_DEFAULT = "I can craft it, send me the order for a tip :) {item}",
+        MSG_SELF_HELP  = "Used when the crafter is the character you are playing. Same placeholders. Enter to save.",
+        MSG_SELF_CURRENT = "|cff33ff99CraftCheck|r message (if it's me) current: %s",
         CHAT_LOCKDOWN  = "|cff33ff99CraftCheck|r: chat is locked down right now, the message cannot be typed.",
         INSERT_FAIL    = "|cff33ff99CraftCheck|r: could not open the chat box. Message: %s",
         MSG_HELP       = "{character} or {personaje} = crafter Name-Realm, {item} or {objeto} = max-quality item link (appended at the end if missing). Enter to save.",
@@ -568,7 +576,12 @@ local PLACEHOLDERS = {
 }
 
 function ns.BuildChatMessage(charKey, itemLink)
-    local template = ns.db.settings.msgTemplate or L.MSG_DEFAULT
+    local template
+    if charKey and charKey == ns.playerKey then
+        template = ns.db.settings.msgTemplateSelf or L.MSG_SELF_DEFAULT
+    else
+        template = ns.db.settings.msgTemplate or L.MSG_DEFAULT
+    end
     local values = { char = charKey or "?", item = itemLink or "" }
     local hasItem = false
     for key in template:gmatch("{(%a+)}") do
@@ -1236,6 +1249,16 @@ local function SlashHandler(msg)
         end
     elseif cmd == "scan" or cmd == "escanear" then
         ns.ScanCurrentTradeSkill(false)
+    elseif cmd == "mensajeyo" or cmd == "selfmessage" or cmd == "selfmsg" then
+        if rest == "" then
+            print(string.format(L.MSG_SELF_CURRENT, ns.db.settings.msgTemplateSelf or L.MSG_SELF_DEFAULT))
+        elseif rest:lower() == "reset" then
+            ns.db.settings.msgTemplateSelf = nil
+            print(L.MSG_RESET)
+        else
+            ns.db.settings.msgTemplateSelf = rest
+            print(L.MSG_SET)
+        end
     elseif cmd == "debug" then
         ns.db.settings.debug = not ns.db.settings.debug
         print("|cff33ff99CraftCheck|r debug: " .. (ns.db.settings.debug and "ON" or "OFF"))
