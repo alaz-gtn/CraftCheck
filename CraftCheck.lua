@@ -597,6 +597,19 @@ local function GetActiveEditBox()
     return nil
 end
 
+-- Cuadro de edición con el foco del teclado (la forma más fiable de saber dónde escribir)
+local function FocusedEditBox()
+    local f = GetCurrentKeyBoardFocus and GetCurrentKeyBoardFocus()
+    if f and f.Insert and f.GetText and f.IsShown and f:IsShown() then return f end
+    return GetActiveEditBox()
+end
+
+local function Debug(...)
+    if ns.db and ns.db.settings.debug then
+        print("|cffff8800CraftCheck debug|r:", ...)
+    end
+end
+
 local function ChatLocked()
     return C_ChatInfo and C_ChatInfo.InChatMessagingLockdown and C_ChatInfo.InChatMessagingLockdown()
 end
@@ -641,27 +654,36 @@ function ns.WhisperMessage(charKey, itemID, itemLink, target)
     target = target or ns.GetRecentLinker(itemID)
     if ChatLocked() then print(L.CHAT_LOCKDOWN) return end
     if target then
-        local full = "/w " .. target .. " " .. msg
+        local sendTell = ChatFn("SendTell", "ChatFrame_SendTell")
         local openChat = ChatFn("OpenChat", "ChatFrame_OpenChat")
+        Debug("target=" .. tostring(target), "SendTell=" .. tostring(sendTell ~= nil), "OpenChat=" .. tostring(openChat ~= nil))
         local opened = false
-        if openChat then
-            opened = pcall(openChat, full)
+        if sendTell then
+            local ok, err = pcall(sendTell, target)
+            opened = ok
+            if not ok then Debug("SendTell error: " .. tostring(err)) end
         end
-        if not opened then
-            local sendTell = ChatFn("SendTell", "ChatFrame_SendTell")
-            if sendTell then opened = pcall(sendTell, target) end
+        if not opened and openChat then
+            local ok, err = pcall(openChat, "/w " .. target .. " ")
+            opened = ok
+            if not ok then Debug("OpenChat error: " .. tostring(err)) end
         end
         if opened then
-            -- Algunas interfaces de chat reescriben el cuadro al activarse: comprobamos un instante después
-            C_Timer.After(0.1, function()
-                local eb = GetActiveEditBox() or (DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.editBox)
-                if not eb then return end
+            local function PutText(label)
+                local eb = FocusedEditBox()
+                Debug(label, "box=" .. tostring(eb and eb:GetName() or eb), "text=[" .. tostring(eb and eb:GetText() or "") .. "]")
+                if not eb then return false end
                 local current = eb:GetText() or ""
                 if not current:find(msg, 1, true) then
-                    eb:SetText(full)
-                    eb:SetCursorPosition(#full)
+                    eb:Insert(msg)
+                    Debug(label, "inserted -> [" .. tostring(eb:GetText()) .. "]")
                 end
-            end)
+                return true
+            end
+            if not PutText("t0") then
+                C_Timer.After(0.1, function() PutText("t0.1") end)
+            end
+            C_Timer.After(0.3, function() PutText("t0.3") end)
             return
         end
     end
@@ -671,7 +693,7 @@ end
 function ns.InsertChatText(text)
     if not text or text == "" then return end
     if ChatLocked() then print(L.CHAT_LOCKDOWN) return end
-    local eb = GetActiveEditBox()
+    local eb = FocusedEditBox()
     if not eb then
         local choose = ChatFn("ChooseBoxForSend", "ChatEdit_ChooseBoxForSend")
         if choose then
@@ -689,7 +711,7 @@ function ns.InsertChatText(text)
     eb:Insert(text)
     -- Si el cuadro se acaba de activar, algunas interfaces lo reescriben: reinsertamos si hace falta
     C_Timer.After(0.1, function()
-        local box = GetActiveEditBox() or eb
+        local box = FocusedEditBox() or eb
         local current = box:GetText() or ""
         if not current:find(text, 1, true) then
             box:Insert(text)
@@ -937,6 +959,9 @@ local function SlashHandler(msg)
         end
     elseif cmd == "scan" or cmd == "escanear" then
         ns.ScanCurrentTradeSkill(false)
+    elseif cmd == "debug" then
+        ns.db.settings.debug = not ns.db.settings.debug
+        print("|cff33ff99CraftCheck|r debug: " .. (ns.db.settings.debug and "ON" or "OFF"))
     elseif cmd == "mensaje" or cmd == "message" or cmd == "msg" then
         if rest == "" then
             print(string.format(L.MSG_CURRENT, ns.db.settings.msgTemplate or L.MSG_DEFAULT))
