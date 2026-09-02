@@ -36,7 +36,7 @@ Open each profession once on each character (and each expansion tab). CraftCheck
 
 ## Support
 
-CraftCheck is free and always will be. If it saves you time, you can [buy me a coffee](https://ko-fi.com/YOUR_NAME).
+CraftCheck is free and always will be. If it saves you time, you can [buy me a coffee](https://ko-fi.com/gotenzlive).
 
 ## Feedback
 
