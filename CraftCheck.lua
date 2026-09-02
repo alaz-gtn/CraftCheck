@@ -97,6 +97,17 @@ ns.FACTION_ICON = {
     Neutral  = "|TInterface\\FriendsFrame\\PlusManz-PlusManz:16:16|t",
 }
 
+-- Valores secretos de 12.x: no se pueden leer ni comparar
+local function IsSecret(v)
+    return issecretvalue ~= nil and issecretvalue(v)
+end
+ns.IsSecret = IsSecret
+
+local function Trim(str)
+    if type(str) ~= "string" then return str end
+    return (str:gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
 function ns.FactionIcon(faction)
     return ns.FACTION_ICON[faction or "Neutral"] or ns.FACTION_ICON.Neutral
 end
@@ -682,9 +693,9 @@ local function RecordWhisperBox(eb)
     local header = eb.header and eb.header.GetText and eb.header:GetText()
     if type(header) == "string" and not IsSecret(header) and header ~= "" then
         local name = WHISPER_HEADER_PAT and header:match(WHISPER_HEADER_PAT)
-        if name then SetLastWhisper(strtrim(name), false, "header") return end
+        if name then SetLastWhisper(Trim(name), false, "header") return end
         name = BN_HEADER_PAT and header:match(BN_HEADER_PAT)
-        if name then SetLastWhisper(strtrim(name), true, "header") return end
+        if name then SetLastWhisper(Trim(name), true, "header") return end
     end
 end
 
@@ -730,15 +741,34 @@ local function EditBoxChatInfo(eb)
         local header = eb.header and eb.header.GetText and eb.header:GetText()
         if type(header) == "string" and not IsSecret(header) and header ~= "" then
             local name = WHISPER_HEADER_PAT and header:match(WHISPER_HEADER_PAT)
-            if name then ctype, target = "WHISPER", strtrim(name) end
+            if name then ctype, target = "WHISPER", Trim(name) end
             if not name then
                 name = BN_HEADER_PAT and header:match(BN_HEADER_PAT)
-                if name then ctype, target = "BN_WHISPER", strtrim(name) end
+                if name then ctype, target = "BN_WHISPER", Trim(name) end
             end
         end
     end
     if IsSecret(target) then target = "<secret>" end
     return ctype, target
+end
+
+-- "/w Nombre " (o "/cw Nombre ") escrito en un cuadro de chat que el juego aún no ha convertido a susurro
+function ns.GetTypedWhisperTarget()
+    for i = 1, 30 do
+        local cf = _G["ChatFrame" .. i]
+        local eb = cf and cf.editBox
+        if eb and eb.IsShown and eb:IsShown() then
+            local text = eb:GetText()
+            if type(text) == "string" and not IsSecret(text) then
+                local cmd, name = text:match("^/(%a+)%s+(%S+)%s*$")
+                if cmd and name and name:match("^[%a\128-\255'][%a\128-\255'%-]*$") then
+                    Debug("typed whisper in " .. tostring(eb:GetName()) .. ": /" .. cmd .. " " .. name)
+                    return name, eb
+                end
+            end
+        end
+    end
+    return nil
 end
 
 -- Busca entre todos los cuadros de chat (fijos y temporales) uno visible en modo susurro
@@ -842,11 +872,6 @@ end
 ns.recentLinkers = {}
 local LINKER_TTL = 15 * 60
 
-local function IsSecret(v)
-    return issecretvalue ~= nil and issecretvalue(v)
-end
-ns.IsSecret = IsSecret
-
 local function OnChatMessage(msg, sender)
     if IsSecret(msg) or IsSecret(sender) then return end
     if type(msg) ~= "string" or type(sender) ~= "string" or sender == "" then return end
@@ -877,7 +902,14 @@ function ns.WhisperMessage(charKey, itemID, itemLink, target)
             PasteIntoBox(box, msg)
             return
         end
-        target, bn = ns.GetOpenWhisperTarget()
+        local typedName, typedBox = ns.GetTypedWhisperTarget()
+        if typedName then
+            target = typedName
+            if typedBox then pcall(typedBox.SetText, typedBox, "") end
+        end
+        if not target then
+            target, bn = ns.GetOpenWhisperTarget()
+        end
         Debug("open whisper target=" .. tostring(target), "bn=" .. tostring(bn))
     end
     target = target or ns.GetRecentLinker(itemID)

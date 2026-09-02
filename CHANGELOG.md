@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.8
+
+- Fix: whisper detection had been failing silently since v1.0.4 because of a helper defined too late in the file (nil call error). Pasting from the panel into an open whisper now works.
+- Also handles a whisper typed by hand (`/w Name` or `/cw Name` still in the chat box): the message is sent to that name.
+
 ## v1.0.7
 
 - Fix: pasting from the panel scans every chat window (including temporary whisper windows) for a visible whisper box and pastes there, instead of grabbing the always-visible main chat box (which ended up in /say and closed the whisper).
