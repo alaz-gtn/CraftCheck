@@ -246,9 +246,12 @@ local function Row_OnClick(self, button)
     local line = self.line
     if not line then return end
     if line.kind == "item" then
+        local link = GetItemLink(line.recipe)
         if IsModifiedClick("CHATLINK") then
-            local link = GetItemLink(line.recipe)
             if link then ns.InsertLink(link) end
+        elseif line.charKey then
+            local itemID = line.recipe.items and line.recipe.items[1]
+            ns.WhisperMessage(line.charKey, itemID, link)
         end
     elseif line.key then
         expanded[line.key] = not IsExpanded(line.key, line.defExp)

@@ -13,7 +13,7 @@ Hover or click any item link and see which of your characters can craft it: fact
 Click the item in chat, then click a character in the tooltip. CraftCheck opens a whisper to the player who linked the item with your message already typed, including the max-quality item link. Press Enter and you're done. The message is fully customizable.
 
 **Profession browser**
-A panel (minimap button or `/cc`) lists every character grouped by realm group, with their professions and recipes. Filter to epic gear only, search by item name, and Shift-click to link an item.
+A panel (minimap button or `/cc`) lists every character grouped by realm group, with their professions and recipes. Filter to epic gear only, search by item name, click an item to paste your message into chat (for people who ask without linking), or Shift-click to link the item.
 
 **Concentration tracking**
 Exact for the logged-in character, estimated with regeneration for your alts, so you know who can actually take the order.
