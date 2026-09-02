@@ -640,15 +640,29 @@ function ns.WhisperMessage(charKey, itemID, itemLink, target)
     local msg = ns.BuildChatMessage(charKey, itemLink)
     target = target or ns.GetRecentLinker(itemID)
     if ChatLocked() then print(L.CHAT_LOCKDOWN) return end
-    local sendTell = ChatFn("SendTell", "ChatFrame_SendTell")
-    if target and sendTell then
-        local ok = pcall(sendTell, target)
-        if ok then
-            local eb = GetActiveEditBox()
-            if eb then
-                eb:Insert(msg)
-                return
-            end
+    if target then
+        local full = "/w " .. target .. " " .. msg
+        local openChat = ChatFn("OpenChat", "ChatFrame_OpenChat")
+        local opened = false
+        if openChat then
+            opened = pcall(openChat, full)
+        end
+        if not opened then
+            local sendTell = ChatFn("SendTell", "ChatFrame_SendTell")
+            if sendTell then opened = pcall(sendTell, target) end
+        end
+        if opened then
+            -- Algunas interfaces de chat reescriben el cuadro al activarse: comprobamos un instante después
+            C_Timer.After(0.1, function()
+                local eb = GetActiveEditBox() or (DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.editBox)
+                if not eb then return end
+                local current = eb:GetText() or ""
+                if not current:find(msg, 1, true) then
+                    eb:SetText(full)
+                    eb:SetCursorPosition(#full)
+                end
+            end)
+            return
         end
     end
     ns.InsertChatText(msg)
@@ -668,11 +682,19 @@ function ns.InsertChatText(text)
         local activate = ChatFn("ActivateChat", "ChatEdit_ActivateChat")
         if eb and activate then pcall(activate, eb) end
     end
-    if eb and eb.Insert then
-        eb:Insert(text)
-    else
+    if not eb or not eb.Insert then
         print(string.format(L.INSERT_FAIL, text))
+        return
     end
+    eb:Insert(text)
+    -- Si el cuadro se acaba de activar, algunas interfaces lo reescriben: reinsertamos si hace falta
+    C_Timer.After(0.1, function()
+        local box = GetActiveEditBox() or eb
+        local current = box:GetText() or ""
+        if not current:find(text, 1, true) then
+            box:Insert(text)
+        end
+    end)
 end
 
 -------------------------------------------------------------------------------
