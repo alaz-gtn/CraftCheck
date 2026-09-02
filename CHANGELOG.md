@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.7
+
+- Fix: pasting from the panel scans every chat window (including temporary whisper windows) for a visible whisper box and pastes there, instead of grabbing the always-visible main chat box (which ended up in /say and closed the whisper).
+
 ## v1.0.6
 
 - Whisper detection now uses Blizzard's official chat edit box callbacks, which cover every chat window including temporary whisper windows, and no longer hooks the edit box directly (avoids tainting chat sends).

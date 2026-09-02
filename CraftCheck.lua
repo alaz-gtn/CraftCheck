@@ -703,6 +703,81 @@ local function DumpEditBox(eb)
         "header=" .. tostring(IsSecret(header) and "<secret>" or header))
 end
 
+-- Tipo de chat y destinatario de un cuadro, por cualquiera de las vías disponibles
+local function EditBoxChatInfo(eb)
+    if not eb then return nil end
+    local ctype, target
+    if type(eb.GetChatType) == "function" then
+        local ok, v = pcall(eb.GetChatType, eb)
+        if ok and type(v) == "string" then ctype = v end
+    end
+    if not ctype and eb.GetAttribute then
+        local ok, v = pcall(eb.GetAttribute, eb, "chatType")
+        if ok and type(v) == "string" then ctype = v end
+    end
+    if not ctype and type(eb.chatType) == "string" then ctype = eb.chatType end
+    if ctype == "WHISPER" or ctype == "BN_WHISPER" then
+        if type(eb.GetTellTarget) == "function" then
+            local ok, v = pcall(eb.GetTellTarget, eb)
+            if ok then target = v end
+        end
+        if target == nil and eb.GetAttribute then
+            local ok, v = pcall(eb.GetAttribute, eb, "tellTarget")
+            if ok then target = v end
+        end
+        if target == nil then target = eb.tellTarget end
+    else
+        local header = eb.header and eb.header.GetText and eb.header:GetText()
+        if type(header) == "string" and not IsSecret(header) and header ~= "" then
+            local name = WHISPER_HEADER_PAT and header:match(WHISPER_HEADER_PAT)
+            if name then ctype, target = "WHISPER", strtrim(name) end
+            if not name then
+                name = BN_HEADER_PAT and header:match(BN_HEADER_PAT)
+                if name then ctype, target = "BN_WHISPER", strtrim(name) end
+            end
+        end
+    end
+    if IsSecret(target) then target = "<secret>" end
+    return ctype, target
+end
+
+-- Busca entre todos los cuadros de chat (fijos y temporales) uno visible en modo susurro
+function ns.FindWhisperEditBox()
+    local candidate
+    for i = 1, 30 do
+        local cf = _G["ChatFrame" .. i]
+        local eb = cf and cf.editBox
+        if eb and eb.IsShown and eb:IsShown() then
+            local ctype, target = EditBoxChatInfo(eb)
+            Debug("scan " .. tostring(eb:GetName()), "type=" .. tostring(ctype), "target=" .. tostring(target),
+                "focus=" .. tostring(eb.HasFocus and eb:HasFocus()))
+            if ctype == "WHISPER" or ctype == "BN_WHISPER" then
+                if eb.HasFocus and eb:HasFocus() then return eb, ctype, target end
+                candidate = candidate or eb
+                if not candidate.craftCheckType then candidate.craftCheckType = ctype end
+            end
+        end
+    end
+    if candidate then
+        local ctype, target = EditBoxChatInfo(candidate)
+        return candidate, ctype, target
+    end
+    return nil
+end
+
+local function PasteIntoBox(eb, msg)
+    local activate = ChatFn("ActivateChat", "ChatEdit_ActivateChat")
+    if not (eb.HasFocus and eb:HasFocus()) and activate then pcall(activate, eb) end
+    local current = eb:GetText() or ""
+    if not current:find(msg, 1, true) then eb:Insert(msg) end
+    C_Timer.After(0.1, function()
+        local now = eb:GetText() or ""
+        if not now:find(msg, 1, true) then eb:Insert(msg) end
+        Debug("pasted into " .. tostring(eb:GetName()) .. " -> [" .. tostring(eb:GetText()) .. "]")
+    end)
+end
+ns.PasteIntoBox = PasteIntoBox
+
 function ns.HookChatEditBoxes()
     -- Callbacks oficiales (no HookScript sobre el cuadro: contaminaría el envío de mensajes)
     if EventRegistry and EventRegistry.RegisterCallback then
@@ -795,6 +870,13 @@ function ns.WhisperMessage(charKey, itemID, itemLink, target)
     local msg = ns.BuildChatMessage(charKey, itemLink)
     local bn = false
     if not target then
+        if ChatLocked() then print(L.CHAT_LOCKDOWN) return end
+        local box = ns.FindWhisperEditBox()
+        if box then
+            Debug("whisper box found: " .. tostring(box:GetName()))
+            PasteIntoBox(box, msg)
+            return
+        end
         target, bn = ns.GetOpenWhisperTarget()
         Debug("open whisper target=" .. tostring(target), "bn=" .. tostring(bn))
     end
@@ -847,6 +929,8 @@ function ns.InsertChatText(text)
     if ChatLocked() then print(L.CHAT_LOCKDOWN) return end
     local eb = FocusedEditBox()
     if not eb then
+        eb = ns.FindWhisperEditBox()
+        if eb then PasteIntoBox(eb, text) return end
         -- Un susurro abierto que perdió el foco al pulsar en el panel: lo reactivamos y conserva su destinatario
         eb = GetLastActiveEditBox()
         Debug("InsertChatText: last active box=" .. tostring(eb and eb:GetName() or eb))
