@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.2.1
+
+- Value panel and its button are shown only on the Recipes tab of the profession window; they hide on Specializations and Crafting Orders and come back when you return.
+- Value info on item tooltips appears only for recipes the current character has learned.
+- Bind-on-pickup crafted items (crafting-order gear) no longer show an Auction House price or profit; they show difficulty and reagent cost plus a note that they cannot be sold.
+- Value panel redesigned for readability: solid dark background, larger fonts and rows, wider columns, mouse-wheel scrolling.
+- New "Realm group total" line: fulfilled orders and gold across all your characters on the current connected-realm group.
+
 ## v1.2.0
 
 - Crafting order earnings counter per character (personal, public, guild, NPC orders and gold from tips). Shown in the Value side panel, in the character list of the /cc panel and with `/cc orders` (`/cc orders reset` clears the current character).
