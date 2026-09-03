@@ -1,11 +1,12 @@
 ## Interface: 120100, 120007, 120005, 120001, 120000
 ## Title: CraftCheck
-## Notes: Muestra qué personajes tuyos (del mismo grupo de reinos) pueden fabricar un objeto.
-## Notes-esES: Muestra qué personajes tuyos (del mismo grupo de reinos) pueden fabricar un objeto.
+## Notes: See which of your characters can craft an item, whisper the requester in one click, and check crafting profit vs the Auction House.
+## Notes-esES: Muestra qué personajes tuyos pueden fabricar un objeto, susurra al que lo pide en un click y calcula el beneficio frente a la Casa de Subastas.
 ## Author: aaznar
 ## Version: @project-version@
 ## IconTexture: Interface\AddOns\CraftCheck\icon
 ## SavedVariables: CraftCheckDB
+## OptionalDeps: Auctionator
 ## X-Category: Professions
 ## X-License: MIT
 ## X-Curse-Project-ID: 1679002
@@ -13,3 +14,4 @@
 
 CraftCheck.lua
 CraftCheck_UI.lua
+CraftCheck_Value.lua

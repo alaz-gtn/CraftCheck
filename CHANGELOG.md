@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.0
+
+- New Value module (merged from the CraftValue addon): tooltips of patterns, recipes and craftable items show recipe difficulty, reagent cost at max quality, Auction House price of the crafted item at your target item level and the profit after the 5% cut.
+- "CraftCheck" button in the profession window opens a side panel ranking your known recipes by profit, with an item level field. Rows open the recipe.
+- `/cv` commands: `top [n]`, `span N`, `ilvl`, `debug`, `probe`, and own Auction House scanning (`full`, `all`, `scan`, `reset`) when Auctionator is not installed. Auctionator is optional and preferred as price source.
+- Value data lives inside CraftCheckDB (no separate saved variable).
+
 ## v1.1.0
 
 - New: a separate whisper message for when the crafter is the character you are playing (default: "I can craft it, send me the order for a tip :)"). Editable in the panel ("If it's me") or with `/cc selfmessage`.

@@ -1,6 +1,6 @@
 # <img src="https://raw.githubusercontent.com/alaz-gtn/CraftCheck/main/assets/CraftCheck_icon_40.png" width="40" align="absmiddle"> CraftCheck
 
-**See instantly which of your characters can craft an item someone links in chat, and whisper them back in one click.**
+**See instantly which of your characters can craft an item someone links in chat, whisper them back in one click, and know whether the craft is worth it.**
 
 Do you have several crafters spread across realms? Someone links an item in Trade asking for a crafter, and you have to remember which alt learned that recipe, on which realm, and whether they have Concentration left. CraftCheck answers all of that in the item tooltip.
 
@@ -18,6 +18,9 @@ A panel (minimap button or `/cc`) lists every character grouped by realm group, 
 **Concentration tracking**
 Exact for the logged-in character, estimated with regeneration for your alts, so you know who can actually take the order.
 
+**Crafting value (profit vs Auction House)**
+Hover any pattern, recipe or craftable item and see the recipe difficulty, the reagent cost at max quality, the Auction House price of the crafted item at your target item level and the profit after the 5% cut. In the profession window a "CraftCheck" button opens a side panel ranking your known recipes by profit (`/cv top`). Prices come from Auctionator's Full Scan if you have it; otherwise CraftCheck can scan the Auction House itself.
+
 **Localized** in English and Spanish.
 
 ## How it works
@@ -34,6 +37,10 @@ Open each profession once on each character (and each expansion tab). CraftCheck
 - `/cc scan` – force a rescan of the open profession
 - `/cc message <text>` – set the whisper message (`{character}` = crafter Name-Realm, `{item}` = item link; Spanish `{personaje}` / `{objeto}` also work)
 - `/cc selfmessage <text>` – message used when the crafter is the character you are playing
+- `/cv top [n]` – rank your known recipes by profit (profession window open)
+- `/cv span N` – how far below the target ilvl a recipe's base item may be to count (default 30)
+- `/cv ilvl` – show the item levels the selected recipe produces per quality
+- `/cv full` / `/cv all` / `/cv scan` / `/cv reset` – own Auction House scanning (only without Auctionator)
 
 ## Support
 
