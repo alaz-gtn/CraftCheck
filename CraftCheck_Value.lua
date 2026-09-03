@@ -599,8 +599,8 @@ end
 ---------------------------------------------------------------------------
 -- Ventana (visible con la profesion abierta)
 ---------------------------------------------------------------------------
-local ROW_H, BASE_H, MAX_ROWS_VISIBLE, WIN_W = 16, 112, 25, 540
-local COL_NAME, COL_MONEY = 200, 95
+local ROW_H, BASE_H, MAX_ROWS_VISIBLE, WIN_W = 20, 150, 20, 660
+local COL_NAME, COL_MONEY = 250, 110
 
 -- ilvl que produce cada calidad (1..5) de una receta
 local function RecipeQualityLevels(recipeID)
@@ -661,13 +661,13 @@ ShowTop = function()
       row = CreateFrame("Button", nil, win.content)
       row:SetHeight(ROW_H)
       row:SetPoint("LEFT", 0, 0); row:SetPoint("RIGHT", 0, 0)
-      row.name = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+      row.name = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
       row.name:SetPoint("LEFT", 2, 0); row.name:SetWidth(COL_NAME); row.name:SetJustifyH("LEFT"); row.name:SetWordWrap(false)
-      row.cost = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+      row.cost = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
       row.cost:SetPoint("LEFT", row.name, "RIGHT", 4, 0); row.cost:SetWidth(COL_MONEY); row.cost:SetJustifyH("RIGHT")
-      row.price = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+      row.price = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
       row.price:SetPoint("LEFT", row.cost, "RIGHT", 4, 0); row.price:SetWidth(COL_MONEY); row.price:SetJustifyH("RIGHT")
-      row.profit = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+      row.profit = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
       row.profit:SetPoint("LEFT", row.price, "RIGHT", 4, 0); row.profit:SetWidth(COL_MONEY); row.profit:SetJustifyH("RIGHT")
       row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
       row:SetScript("OnClick", function(b) if b.recipeID then C_TradeSkillUI.OpenRecipe(b.recipeID) end end)
@@ -703,19 +703,21 @@ local function BuildWindow()
   win:SetSize(WIN_W, BASE_H)
   win:SetPoint("TOPLEFT", ProfessionsFrame, "TOPRIGHT", 4, 0)
   win:SetFrameStrata("HIGH")
-  win:SetBackdrop({ bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background", edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-    tile = true, tileSize = 32, edgeSize = 24, insets = { left = 6, right = 6, top = 6, bottom = 6 } })
+  win:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+    tile = true, tileSize = 16, edgeSize = 14, insets = { left = 4, right = 4, top = 4, bottom = 4 } })
+  win:SetBackdropColor(0.04, 0.04, 0.07, 0.96)
+  win:SetBackdropBorderColor(0.55, 0.45, 0.25, 1)
   win:SetMovable(true); win:EnableMouse(true); win:RegisterForDrag("LeftButton")
   win:SetScript("OnDragStart", win.StartMoving); win:SetScript("OnDragStop", win.StopMovingOrSizing)
   win.rows = {}
 
-  local title = win:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  local title = win:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
   title:SetPoint("TOPLEFT", 14, -12); title:SetText(TAG)
 
-  local lbl = win:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-  lbl:SetPoint("TOPLEFT", 14, -40); lbl:SetText(L["ilvl"] .. ":")
+  local lbl = win:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  lbl:SetPoint("TOPLEFT", 14, -44); lbl:SetText(L["ilvl"] .. ":")
   win.ilvlBox = CreateFrame("EditBox", nil, win, "InputBoxTemplate")
-  win.ilvlBox:SetSize(46, 20); win.ilvlBox:SetPoint("LEFT", lbl, "RIGHT", 8, 0)
+  win.ilvlBox:SetSize(52, 22); win.ilvlBox:SetPoint("LEFT", lbl, "RIGHT", 10, 0)
   win.ilvlBox:SetAutoFocus(false); win.ilvlBox:SetNumeric(true); win.ilvlBox:SetMaxLetters(4)
   win.ilvlBox:SetText(tostring(CraftValueDB.ilvl))
   win.ilvlBox:SetScript("OnEnterPressed", function(b) b:ClearFocus(); ShowTop() end)
@@ -733,24 +735,30 @@ local function BuildWindow()
   win.btnTop:SetSize(110, 22); win.btnTop:SetPoint("LEFT", anchor, "RIGHT", anchor == win.ilvlBox and 12 or 6, 0); win.btnTop:SetText(L["Top"])
   win.btnTop:SetScript("OnClick", ShowTop)
 
-  win.status = win:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-  win.status:SetPoint("TOPLEFT", 14, -66); win.status:SetPoint("RIGHT", -14, 0); win.status:SetJustifyH("LEFT")
+  win.status = win:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  win.status:SetPoint("TOPLEFT", 14, -74); win.status:SetPoint("RIGHT", -14, 0); win.status:SetJustifyH("LEFT")
   win.status:SetText(HasAuctionator() and L["Prices: Auctionator Full Scan. Press Top."] or L["With the AH open: Scan AH. Then: Top."])
 
   -- Órdenes completadas por este personaje
-  win.orders = win:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-  win.orders:SetPoint("TOPLEFT", 14, -82); win.orders:SetPoint("RIGHT", -14, 0); win.orders:SetJustifyH("LEFT")
+  win.orders = win:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  win.orders:SetPoint("TOPLEFT", 14, -94); win.orders:SetPoint("RIGHT", -14, 0); win.orders:SetJustifyH("LEFT")
+  win.ordersGroup = win:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  win.ordersGroup:SetPoint("TOPLEFT", 14, -112); win.ordersGroup:SetPoint("RIGHT", -14, 0); win.ordersGroup:SetJustifyH("LEFT")
   ns.OnOrderRecorded = function()
     if not win then return end
-    local stats = ns.FormatOrderStats(ns.GetOrderStats(ns.playerKey)) or (ns.L and ns.L.ORDERS_NONE) or ""
-    win.orders:SetText("|cffffd100" .. ((ns.L and ns.L.ORDERS_LABEL) or "Orders") .. ":|r " .. stats)
+    local CL = ns.L or {}
+    local stats = ns.FormatOrderStats(ns.GetOrderStats(ns.playerKey)) or CL.ORDERS_NONE or ""
+    win.orders:SetText("|cffffd100" .. (CL.ORDERS_LABEL or "Orders") .. ":|r " .. stats)
+    local n, gold = ns.OrderTotalForGroup()
+    win.ordersGroup:SetText("|cffffd100" .. (CL.ORDERS_GROUP or "Realm group total") .. ":|r "
+      .. n .. " " .. (CL.ORDERS_UNIT or "orders") .. " (" .. ns.MoneyGold(gold) .. ")")
   end
   ns.OnOrderRecorded()
 
   win.header = CreateFrame("Frame", nil, win)
-  win.header:SetPoint("TOPLEFT", 14, -100); win.header:SetPoint("RIGHT", -30, 0); win.header:SetHeight(ROW_H)
+  win.header:SetPoint("TOPLEFT", 14, -134); win.header:SetPoint("RIGHT", -30, 0); win.header:SetHeight(ROW_H)
   local function H(text, anchorTo, width, justify)
-    local fsH = win.header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    local fsH = win.header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     if anchorTo then fsH:SetPoint("LEFT", anchorTo, "RIGHT", 4, 0) else fsH:SetPoint("LEFT", 2, 0) end
     fsH:SetWidth(width); fsH:SetJustifyH(justify); fsH:SetText(text)
     return fsH
@@ -762,9 +770,15 @@ local function BuildWindow()
   win.header:Hide()
 
   win.scroll = CreateFrame("ScrollFrame", nil, win, "UIPanelScrollFrameTemplate")
-  win.scroll:SetPoint("TOPLEFT", 14, -114); win.scroll:SetPoint("RIGHT", -30, 0); win.scroll:SetHeight(1)
+  win.scroll:SetPoint("TOPLEFT", 14, -156); win.scroll:SetPoint("RIGHT", -30, 0); win.scroll:SetHeight(1)
   win.content = CreateFrame("Frame", nil, win.scroll)
   win.content:SetSize(WIN_W - 50, 1)
+  win.scroll:SetScript("OnMouseWheel", function(self, delta)
+    local cur = self:GetVerticalScroll()
+    local maxV = self:GetVerticalScrollRange()
+    local newV = math.max(0, math.min(maxV, cur - delta * ROW_H * 3))
+    self:SetVerticalScroll(newV)
+  end)
   win.scroll:SetScrollChild(win.content)
   win:Hide()
 

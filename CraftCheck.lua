@@ -46,6 +46,8 @@ if isES then
         ORDERS_GUILD   = "de hermandad",
         ORDERS_NPC     = "de PNJ",
         ORDERS_NONE    = "ninguna todavía",
+        ORDERS_GROUP   = "Total del grupo de reinos",
+        ORDERS_UNIT    = "órdenes",
         ORDERS_RECORDED = "|cff33ff99CraftCheck|r: orden %s completada, +%s (total %s).",
         ORDERS_RESET   = "|cff33ff99CraftCheck|r: contador de órdenes de %s reiniciado.",
         ORDERS_HEADER  = "|cff33ff99CraftCheck|r órdenes completadas por personaje:",
@@ -97,6 +99,8 @@ else
         ORDERS_GUILD   = "guild",
         ORDERS_NPC     = "NPC",
         ORDERS_NONE    = "none yet",
+        ORDERS_GROUP   = "Realm group total",
+        ORDERS_UNIT    = "orders",
         ORDERS_RECORDED = "|cff33ff99CraftCheck|r: %s order fulfilled, +%s (total %s).",
         ORDERS_RESET   = "|cff33ff99CraftCheck|r: order counter for %s reset.",
         ORDERS_HEADER  = "|cff33ff99CraftCheck|r orders fulfilled per character:",
@@ -1066,6 +1070,18 @@ function ns.OrderTotal(orders)
         for _, key in ipairs(ORDER_TYPES) do
             local b = orders[key]
             if b then n = n + (b.n or 0); gold = gold + (b.gold or 0) end
+        end
+    end
+    return n, gold
+end
+
+-- Total de órdenes y oro de todos los personajes del grupo de reinos actual
+function ns.OrderTotalForGroup()
+    local n, gold = 0, 0
+    for _, c in pairs(ns.db and ns.db.chars or {}) do
+        if c.orders and c.realm and ns.currentGroupSet[c.realm] then
+            local cn, cg = ns.OrderTotal(c.orders)
+            n, gold = n + cn, gold + cg
         end
     end
     return n, gold
