@@ -30,6 +30,7 @@ if locale == "esES" or locale == "esMX" then
   L["missing"] = "sin precio"
   L["incomplete"] = "incompleto"
   L["Item"] = "Objeto"
+  L["Binds when picked up: crafting orders only, not sold in the AH"] = "Se liga al recogerlo: solo órdenes de fabricación, no se vende en la AH"
   L["in AH"] = "en la AH"
   L["own scan"] = "escaneo propio"
   L["Profit (after 5%)"] = L["Profit (after 5%)"]
@@ -169,6 +170,15 @@ local function ItemLevelPrice(itemID, ilvl)
   local c = Cache(itemID)
   if c and c.levels and c.levels[ilvl] then return c.levels[ilvl], "propio", c.when end
   return nil, HasAuctionator() and "auctionator" or (c and "propio" or nil), c and c.when
+end
+
+-- ¿El objeto se liga al recogerlo? (no se puede vender en la AH: solo órdenes de fabricación)
+local function IsBoP(itemID)
+    if not itemID then return false end
+    local bindType = select(14, GetItemInfo(itemID))
+    if bindType == nil then return false end
+    local onAcquire = (Enum and Enum.ItemBind and Enum.ItemBind.OnAcquire) or 1
+    return bindType == onAcquire
 end
 
 local function ReagentQuality(itemID)
@@ -461,6 +471,10 @@ local function IlvlLabel(craftedID, ilvl)
 end
 
 local function AddAHSection(tooltip, craftedID, cost, complete)
+  if IsBoP(craftedID) then
+    tooltip:AddLine(L["Binds when picked up: crafting orders only, not sold in the AH"], 0.6, 0.6, 0.6)
+    return
+  end
   local ilvl = CraftValueDB.ilvl or 232
   local label = IlvlLabel(craftedID, ilvl)
   local price, src, when = ItemLevelPrice(craftedID, ilvl)
@@ -988,7 +1002,7 @@ local function OnEvent(_, event, arg1)
       if info and not info.isRecraft and info.isSalvageRecipe ~= true then
         local out = OutputItemID(id)
         if out then
-          recipeByOutput[out] = id
+          if info.learned then recipeByOutput[out] = id end
           local qlevels = RecipeQualityLevels(id)
           mine[out] = {
             recipeID = id, prof = profName, learned = info.learned and true or false,
