@@ -29,7 +29,7 @@ if isES then
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: información en tooltip |cffff0000desactivada|r.",
         DELETED        = "|cff33ff99CraftCheck|r: personaje %s eliminado.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: no se encontró el personaje %s.",
-        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
+        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cc ordenes [reset] - propinas cobradas por órdenes de fabricación\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
         LIST_HEADER    = "|cff33ff99CraftCheck|r personajes guardados:",
         UNKNOWN_REALM  = "Reino desconocido",
         CONC           = "Concentración",
@@ -40,6 +40,15 @@ if isES then
         TIP_WHISPER_TO = "Susurro a: %s",
         MSG_LABEL      = "Mensaje del susurro:",
         MSG_SELF_LABEL = "Si soy yo:",
+        ORDERS_LABEL   = "Órdenes completadas",
+        ORDERS_PERSONAL = "personales",
+        ORDERS_PUBLIC  = "públicas",
+        ORDERS_GUILD   = "de hermandad",
+        ORDERS_NPC     = "de PNJ",
+        ORDERS_NONE    = "ninguna todavía",
+        ORDERS_RECORDED = "|cff33ff99CraftCheck|r: orden %s completada, +%s (total %s).",
+        ORDERS_RESET   = "|cff33ff99CraftCheck|r: contador de órdenes de %s reiniciado.",
+        ORDERS_HEADER  = "|cff33ff99CraftCheck|r órdenes completadas por personaje:",
         MSG_SELF_DEFAULT = "Yo lo crafteo, envíamela por la voluntad :) {objeto}",
         MSG_SELF_HELP  = "Se usa cuando el fabricante es el personaje con el que estás jugando. Mismos marcadores. Intro para guardar.",
         MSG_SELF_CURRENT = "|cff33ff99CraftCheck|r mensaje (si soy yo) actual: %s",
@@ -71,7 +80,7 @@ else
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: tooltip info |cffff0000disabled|r.",
         DELETED        = "|cff33ff99CraftCheck|r: character %s removed.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: character %s not found.",
-        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cv - Value module: crafting profit vs the Auction House",
+        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cc orders [reset] - tips earned from crafting orders\n  /cv - Value module: crafting profit vs the Auction House",
         LIST_HEADER    = "|cff33ff99CraftCheck|r saved characters:",
         UNKNOWN_REALM  = "Unknown realm",
         CONC           = "Concentration",
@@ -82,6 +91,15 @@ else
         TIP_WHISPER_TO = "Whisper to: %s",
         MSG_LABEL      = "Whisper message:",
         MSG_SELF_LABEL = "If it's me:",
+        ORDERS_LABEL   = "Orders fulfilled",
+        ORDERS_PERSONAL = "personal",
+        ORDERS_PUBLIC  = "public",
+        ORDERS_GUILD   = "guild",
+        ORDERS_NPC     = "NPC",
+        ORDERS_NONE    = "none yet",
+        ORDERS_RECORDED = "|cff33ff99CraftCheck|r: %s order fulfilled, +%s (total %s).",
+        ORDERS_RESET   = "|cff33ff99CraftCheck|r: order counter for %s reset.",
+        ORDERS_HEADER  = "|cff33ff99CraftCheck|r orders fulfilled per character:",
         MSG_SELF_DEFAULT = "I can craft it, send me the order for a tip :) {item}",
         MSG_SELF_HELP  = "Used when the crafter is the character you are playing. Same placeholders. Enter to save.",
         MSG_SELF_CURRENT = "|cff33ff99CraftCheck|r message (if it's me) current: %s",
@@ -1010,6 +1028,99 @@ function ns.InsertChatText(text)
 end
 
 -------------------------------------------------------------------------------
+-- Órdenes de fabricación completadas: propinas cobradas por personaje
+-------------------------------------------------------------------------------
+local ORDER_TYPE_KEY = { [0] = "public", [1] = "guild", [2] = "personal", [3] = "npc" }
+local ORDER_TYPES = { "personal", "public", "guild", "npc" }
+local claimedCache = {}   -- orderID -> datos de la orden reclamada (leídos antes de completarla)
+
+local function CacheClaimedOrder()
+    if not C_CraftingOrders or not C_CraftingOrders.GetClaimedOrder then return end
+    local ok, order = pcall(C_CraftingOrders.GetClaimedOrder)
+    if not ok or type(order) ~= "table" or not order.orderID then return end
+    local customer = order.customerName
+    if IsSecret(customer) then customer = nil end
+    claimedCache[order.orderID] = {
+        tip = tonumber(order.tipAmount) or 0,
+        cut = tonumber(order.consortiumCut) or 0,
+        otype = ORDER_TYPE_KEY[order.orderType or -1] or "other",
+        customer = customer,
+        itemID = order.itemID,
+    }
+end
+
+function ns.MoneyGold(copper)
+    local gold = math.floor((copper or 0) / 10000)
+    local txt = BreakUpLargeNumbers and BreakUpLargeNumbers(gold) or tostring(gold)
+    return txt .. "|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:2:0|t"
+end
+
+function ns.GetOrderStats(charKey)
+    local c = ns.db and charKey and ns.db.chars[charKey]
+    return c and c.orders or nil
+end
+
+function ns.OrderTotal(orders)
+    local n, gold = 0, 0
+    if orders then
+        for _, key in ipairs(ORDER_TYPES) do
+            local b = orders[key]
+            if b then n = n + (b.n or 0); gold = gold + (b.gold or 0) end
+        end
+    end
+    return n, gold
+end
+
+-- "12 personales (1.234g), 3 públicas (200g)" o nil si no hay ninguna
+function ns.FormatOrderStats(orders)
+    if not orders then return nil end
+    local parts = {}
+    for _, key in ipairs(ORDER_TYPES) do
+        local b = orders[key]
+        if b and (b.n or 0) > 0 then
+            parts[#parts + 1] = string.format("%d %s (%s)", b.n, L["ORDERS_" .. key:upper()] or key, ns.MoneyGold(b.gold))
+        end
+    end
+    if #parts == 0 then return nil end
+    return table.concat(parts, ", ")
+end
+
+local function RecordFulfilledOrder(orderID)
+    local o = orderID and claimedCache[orderID]
+    if not o then return end
+    claimedCache[orderID] = nil
+    local c = ns.GetCharEntry()
+    if not c then return end
+    c.orders = c.orders or {}
+    local earned = math.max(0, o.tip - o.cut)
+    local bucket = c.orders[o.otype] or { n = 0, gold = 0 }
+    bucket.n = bucket.n + 1
+    bucket.gold = bucket.gold + earned
+    c.orders[o.otype] = bucket
+    c.orders.log = c.orders.log or {}
+    table.insert(c.orders.log, 1, { t = time(), otype = o.otype, gold = earned, itemID = o.itemID, customer = o.customer })
+    while #c.orders.log > 50 do table.remove(c.orders.log) end
+    local _, total = ns.OrderTotal(c.orders)
+    print(string.format(L.ORDERS_RECORDED, L["ORDERS_" .. o.otype:upper()] or o.otype, ns.MoneyGold(earned), ns.MoneyGold(total)))
+    if ns.OnOrderRecorded then ns.OnOrderRecorded() end
+    if ns.UI_Refresh then ns.UI_Refresh() end
+end
+
+function ns.HandleOrderEvent(event, arg1, arg2)
+    if event == "CRAFTINGORDERS_CLAIMED_ORDER_ADDED" or event == "CRAFTINGORDERS_CLAIMED_ORDER_UPDATED" then
+        CacheClaimedOrder()
+    elseif event == "CRAFTINGORDERS_FULFILL_ORDER_RESPONSE" then
+        local okResult = (arg1 == 0) or (Enum and Enum.CraftingOrderResult and arg1 == Enum.CraftingOrderResult.Ok)
+        if okResult then RecordFulfilledOrder(arg2) end
+    end
+end
+
+if C_CraftingOrders and type(C_CraftingOrders.FulfillOrder) == "function" then
+    -- Justo antes de completar la orden aún se puede leer la orden reclamada
+    hooksecurefunc(C_CraftingOrders, "FulfillOrder", function() CacheClaimedOrder() end)
+end
+
+-------------------------------------------------------------------------------
 -- Detección de la línea de chat clicada (para saber a quién susurrar)
 -------------------------------------------------------------------------------
 ns.lastClicked = nil   -- { itemID=, sender=, t= } del último enlace de objeto clicado en el chat
@@ -1259,6 +1370,26 @@ local function SlashHandler(msg)
             ns.db.settings.msgTemplateSelf = rest
             print(L.MSG_SET)
         end
+    elseif cmd == "ordenes" or cmd == "orders" then
+        if rest:lower() == "reset" then
+            local c = ns.playerKey and ns.db.chars[ns.playerKey]
+            if c then c.orders = nil end
+            print(string.format(L.ORDERS_RESET, ns.playerKey or "?"))
+            if ns.OnOrderRecorded then ns.OnOrderRecorded() end
+            if ns.UI_Refresh then ns.UI_Refresh() end
+        else
+            print(L.ORDERS_HEADER)
+            local keys = {}
+            for key, c in pairs(ns.db.chars) do
+                if c.orders and ns.OrderTotal(c.orders) > 0 then keys[#keys + 1] = key end
+            end
+            table.sort(keys)
+            for _, key in ipairs(keys) do
+                local c = ns.db.chars[key]
+                print("  " .. ns.FactionIcon(c.faction) .. " " .. ns.ClassColorText(c.class, key) .. ": " .. ns.FormatOrderStats(c.orders))
+            end
+            if #keys == 0 then print("  " .. L.ORDERS_NONE) end
+        end
     elseif cmd == "debug" then
         ns.db.settings.debug = not ns.db.settings.debug
         print("|cff33ff99CraftCheck|r debug: " .. (ns.db.settings.debug and "ON" or "OFF"))
@@ -1290,6 +1421,9 @@ frame:RegisterEvent("SKILL_LINES_CHANGED")
 frame:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
 frame:RegisterEvent("PLAYER_LOGOUT")
 frame:RegisterEvent("CHAT_MSG_WHISPER_INFORM")
+for _, ev in ipairs({ "CRAFTINGORDERS_CLAIMED_ORDER_ADDED", "CRAFTINGORDERS_CLAIMED_ORDER_UPDATED", "CRAFTINGORDERS_FULFILL_ORDER_RESPONSE" }) do
+    pcall(frame.RegisterEvent, frame, ev)
+end
 local CHAT_EVENTS = {
     "CHAT_MSG_SAY", "CHAT_MSG_YELL", "CHAT_MSG_CHANNEL", "CHAT_MSG_GUILD", "CHAT_MSG_OFFICER",
     "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER", "CHAT_MSG_RAID", "CHAT_MSG_RAID_LEADER",
@@ -1298,6 +1432,10 @@ local CHAT_EVENTS = {
 for _, ev in ipairs(CHAT_EVENTS) do frame:RegisterEvent(ev) end
 
 frame:SetScript("OnEvent", function(self, event, arg1, arg2)
+    if event:sub(1, 15) == "CRAFTINGORDERS_" then
+        ns.HandleOrderEvent(event, arg1, arg2)
+        return
+    end
     if event == "CHAT_MSG_WHISPER_INFORM" then
         SetLastWhisper(arg2, false, "sent whisper")
         return

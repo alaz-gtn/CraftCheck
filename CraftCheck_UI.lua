@@ -169,7 +169,8 @@ local function BuildLines()
                         .. ns.FactionIcon(c.faction) .. " " .. ns.ClassColorText(c.class, c.name)
                         .. "|cffaaaaaa-" .. (realmDisplay[c.realm] or c.realm or "?") .. "|r"
                         .. (ch.key == ns.playerKey and (" |cff00ff00" .. L.YOU .. "|r") or "")
-                        .. "  |cffaaaaaa" .. table.concat(profNames, ", ") .. "|r",
+                        .. "  |cffaaaaaa" .. table.concat(profNames, ", ") .. "|r"
+                        .. (ns.FormatOrderStats(c.orders) and ("  |cffffd100" .. L.ORDERS_LABEL .. ":|r " .. ns.FormatOrderStats(c.orders)) or ""),
                 }
                 if cexp then
                     for _, pr in ipairs(profList) do

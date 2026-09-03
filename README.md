@@ -21,6 +21,9 @@ Exact for the logged-in character, estimated with regeneration for your alts, so
 **Crafting value (profit vs Auction House)**
 Hover any pattern, recipe or craftable item and see the recipe difficulty, the reagent cost at max quality, the Auction House price of the crafted item at your target item level and the profit after the 5% cut. In the profession window a "CraftCheck" button opens a side panel ranking your known recipes by profit (`/cv top`). Prices come from Auctionator's Full Scan if you have it; otherwise CraftCheck can scan the Auction House itself.
 
+**Crafting order earnings**
+Every fulfilled crafting order is counted per character: how many personal, public, guild and NPC orders and how much gold in tips. Shown in the profession side panel, in the character list and with `/cc orders`.
+
 **Localized** in English and Spanish.
 
 ## How it works
@@ -37,6 +40,7 @@ Open each profession once on each character (and each expansion tab). CraftCheck
 - `/cc scan` – force a rescan of the open profession
 - `/cc message <text>` – set the whisper message (`{character}` = crafter Name-Realm, `{item}` = item link; Spanish `{personaje}` / `{objeto}` also work)
 - `/cc selfmessage <text>` – message used when the crafter is the character you are playing
+- `/cc orders` – tips earned from crafting orders per character (`/cc orders reset` clears the current character)
 - `/cv top [n]` – rank your known recipes by profit (profession window open)
 - `/cv span N` – how far below the target ilvl a recipe's base item may be to count (default 30)
 - `/cv ilvl` – show the item levels the selected recipe produces per quality

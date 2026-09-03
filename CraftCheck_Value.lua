@@ -195,6 +195,7 @@ end
 -- Cola de busquedas en la AH
 ---------------------------------------------------------------------------
 local function Enqueue(entry)
+  if HasAuctionator() then return end   -- con Auctionator los precios salen de su Full Scan
   local key = entry.itemID or ("n:" .. entry.name:lower())
   if queued[key] then return end
   queued[key] = true
@@ -584,7 +585,7 @@ end
 ---------------------------------------------------------------------------
 -- Ventana (visible con la profesion abierta)
 ---------------------------------------------------------------------------
-local ROW_H, BASE_H, MAX_ROWS_VISIBLE, WIN_W = 16, 96, 25, 540
+local ROW_H, BASE_H, MAX_ROWS_VISIBLE, WIN_W = 16, 112, 25, 540
 local COL_NAME, COL_MONEY = 200, 95
 
 -- ilvl que produce cada calidad (1..5) de una receta
@@ -635,6 +636,7 @@ end
 local function SetStatus(txt) if win then win.status:SetText(txt or "") end end
 
 ShowTop = function()
+  if ns.OnOrderRecorded then ns.OnOrderRecorded() end
   local ilvl = tonumber(win.ilvlBox:GetText()) or CraftValueDB.ilvl
   CraftValueDB.ilvl = ilvl
   local rows = TopRows(ilvl)
@@ -721,8 +723,18 @@ local function BuildWindow()
   win.status:SetPoint("TOPLEFT", 14, -66); win.status:SetPoint("RIGHT", -14, 0); win.status:SetJustifyH("LEFT")
   win.status:SetText(HasAuctionator() and L["Prices: Auctionator Full Scan. Press Top."] or L["With the AH open: Scan AH. Then: Top."])
 
+  -- Órdenes completadas por este personaje
+  win.orders = win:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+  win.orders:SetPoint("TOPLEFT", 14, -82); win.orders:SetPoint("RIGHT", -14, 0); win.orders:SetJustifyH("LEFT")
+  ns.OnOrderRecorded = function()
+    if not win then return end
+    local stats = ns.FormatOrderStats(ns.GetOrderStats(ns.playerKey)) or (ns.L and ns.L.ORDERS_NONE) or ""
+    win.orders:SetText("|cffffd100" .. ((ns.L and ns.L.ORDERS_LABEL) or "Orders") .. ":|r " .. stats)
+  end
+  ns.OnOrderRecorded()
+
   win.header = CreateFrame("Frame", nil, win)
-  win.header:SetPoint("TOPLEFT", 14, -84); win.header:SetPoint("RIGHT", -30, 0); win.header:SetHeight(ROW_H)
+  win.header:SetPoint("TOPLEFT", 14, -100); win.header:SetPoint("RIGHT", -30, 0); win.header:SetHeight(ROW_H)
   local function H(text, anchorTo, width, justify)
     local fsH = win.header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     if anchorTo then fsH:SetPoint("LEFT", anchorTo, "RIGHT", 4, 0) else fsH:SetPoint("LEFT", 2, 0) end
@@ -736,7 +748,7 @@ local function BuildWindow()
   win.header:Hide()
 
   win.scroll = CreateFrame("ScrollFrame", nil, win, "UIPanelScrollFrameTemplate")
-  win.scroll:SetPoint("TOPLEFT", 14, -98); win.scroll:SetPoint("RIGHT", -30, 0); win.scroll:SetHeight(1)
+  win.scroll:SetPoint("TOPLEFT", 14, -114); win.scroll:SetPoint("RIGHT", -30, 0); win.scroll:SetHeight(1)
   win.content = CreateFrame("Frame", nil, win.scroll)
   win.content:SetSize(WIN_W - 50, 1)
   win.scroll:SetScrollChild(win.content)

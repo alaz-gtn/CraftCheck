@@ -2,6 +2,7 @@
 
 ## v1.2.0
 
+- Crafting order earnings counter per character (personal, public, guild, NPC orders and gold from tips). Shown in the Value side panel, in the character list of the /cc panel and with `/cc orders` (`/cc orders reset` clears the current character).
 - New Value module (merged from the CraftValue addon): tooltips of patterns, recipes and craftable items show recipe difficulty, reagent cost at max quality, Auction House price of the crafted item at your target item level and the profit after the 5% cut.
 - "CraftCheck" button in the profession window opens a side panel ranking your known recipes by profit, with an item level field. Rows open the recipe.
 - `/cv` commands: `top [n]`, `span N`, `ilvl`, `debug`, `probe`, and own Auction House scanning (`full`, `all`, `scan`, `reset`) when Auctionator is not installed. Auctionator is optional and preferred as price source.
