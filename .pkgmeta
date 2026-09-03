@@ -10,3 +10,4 @@ ignore:
   - assets
   - .github
   - .gitignore
+  - CraftCheckDev.toc

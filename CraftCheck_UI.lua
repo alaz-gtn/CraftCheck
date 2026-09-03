@@ -564,7 +564,7 @@ local function CreateMinimapButton()
 
     local icon = minimapButton:CreateTexture(nil, "ARTWORK")
     icon:SetSize(17, 17)
-    icon:SetTexture("Interface\\AddOns\\CraftCheck\\icon")
+    icon:SetTexture("Interface\\AddOns\\" .. ADDON_NAME .. "\\icon")
     icon:SetTexCoord(0.04, 0.96, 0.04, 0.96)
     icon:SetPoint("TOPLEFT", 7, -6)
 

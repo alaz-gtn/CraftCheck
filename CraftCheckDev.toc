@@ -1,0 +1,13 @@
+## Interface: 120100, 120007, 120005, 120001, 120000
+## Title: CraftCheck |cffff8000(dev)|r
+## Notes: Development copy of CraftCheck. Disable the CurseForge one while this is enabled.
+## Author: aaznar
+## Version: dev
+## IconTexture: Interface\AddOns\CraftCheckDev\icon
+## SavedVariables: CraftCheckDB
+## OptionalDeps: Auctionator
+## X-Category: Professions
+
+CraftCheck.lua
+CraftCheck_UI.lua
+CraftCheck_Value.lua
