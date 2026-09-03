@@ -770,6 +770,28 @@ local function BuildWindow()
     if win:IsShown() then ShowTop() end
   end)
   win.toggle = toggle
+
+  -- Solo en la pestaña de Recetas: al pasar a Especializaciones u Órdenes se ocultan panel y botón
+  local page = ProfessionsFrame.CraftingPage
+  if page then
+    page:HookScript("OnHide", function()
+      toggle:Hide()
+      if win:IsShown() then
+        win.hiddenByTab = true
+        win:Hide()
+      end
+    end)
+    page:HookScript("OnShow", function()
+      toggle:Show()
+      if win.hiddenByTab then
+        win.hiddenByTab = nil
+        win:Show()
+        C_Timer.After(0.2, ShowTop)
+      end
+    end)
+    toggle:SetShown(page:IsShown())
+  end
+
   if CraftValueDB.winOpen then win:Show(); C_Timer.After(0.5, ShowTop) end
 end
 
