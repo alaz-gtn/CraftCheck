@@ -171,7 +171,19 @@ end
 -- Precio del objeto fabricado a un ilvl concreto.
 -- Auctionator guarda el equipo (Armor/Weapon/Profession) como "g:itemID:ilvl" en su Full Scan.
 -- Devuelve precio, fuente ("auctionator"/"propio"), timestamp (solo propio)
+local function IsEquippable(itemID)
+  if not itemID then return false end
+  local _, _, _, equipLoc = GetItemInfoInstant(itemID)
+  return equipLoc ~= nil and equipLoc ~= "" and equipLoc ~= "INVTYPE_NON_EQUIP_IGNORE"
+end
+
 local function ItemLevelPrice(itemID, ilvl)
+  if not IsEquippable(itemID) then
+    -- Objetos que no son equipo (consumibles sin calidades, etc.): precio por itemID
+    local p = ReagentPrice(itemID)
+    if p then return p, HasAuctionator() and "auctionator" or "propio", Cache(itemID) and Cache(itemID).when end
+    return nil, HasAuctionator() and "auctionator" or (Cache(itemID) and "propio" or nil), Cache(itemID) and Cache(itemID).when
+  end
   local adb = AuctionatorDB()
   if adb then
     local ok, p = pcall(adb.GetPrice, adb, "g:" .. itemID .. ":" .. ilvl)
@@ -579,7 +591,7 @@ local function AddAHSection(tooltip, craftedID, cost, complete)
     return
   end
   local ilvl = CraftValueDB.ilvl or 232
-  local label = IlvlLabel(craftedID, ilvl)
+  local label = IsEquippable(craftedID) and IlvlLabel(craftedID, ilvl) or ""
   local price, src, when = ItemLevelPrice(craftedID, ilvl)
   if price then
     local tag = src == "propio" and (" (" .. L["own scan"] .. " " .. date("%d/%m %H:%M", when) .. ")") or ""
@@ -681,7 +693,15 @@ end
 local BuildTooltip -- definida abajo
 
 local function OnItemTooltip(tooltip, data)
-  if not data or not data.id then return end
+  local itemID = ns.TooltipItemID and ns.TooltipItemID(tooltip, data) or (data and data.id)
+  if not itemID then return end
+  if not data then data = {} end
+  if data.id ~= itemID then
+    local copy = {}
+    for k, val in pairs(data) do copy[k] = val end
+    copy.id = itemID
+    data = copy
+  end
   local c = ttCache[data.id]
   if c and (GetTime() - c.when) < TT_TTL then
     Replay(tooltip, c.lines)

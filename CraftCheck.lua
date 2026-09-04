@@ -1255,19 +1255,48 @@ end
 -------------------------------------------------------------------------------
 -- Tooltip
 -------------------------------------------------------------------------------
+-- ID del objeto que muestra un tooltip, cubriendo los casos en que los datos no traen id
+-- (por ejemplo el resultado de una receta en la ventana de profesión)
+function ns.TooltipItemID(tooltip, data)
+    local itemID = data and data.id
+    if itemID then return itemID end
+    if TooltipUtil and TooltipUtil.GetDisplayedItem then
+        local ok, _, link, id = pcall(TooltipUtil.GetDisplayedItem, tooltip)
+        if ok then
+            if id then return id end
+            if link and C_Item and C_Item.GetItemInfoInstant then
+                local iid = C_Item.GetItemInfoInstant(link)
+                if iid then return iid end
+            end
+        end
+    end
+    local info = tooltip.info or tooltip.processingInfo
+    if info and info.getterName == "GetRecipeResultItem" and type(info.getterArgs) == "table" then
+        local recipeID = info.getterArgs[1]
+        if recipeID and C_TradeSkillUI then
+            local ok, out = pcall(C_TradeSkillUI.GetRecipeOutputItemData, recipeID, info.getterArgs[2], info.getterArgs[3], info.getterArgs[4])
+            if ok and type(out) == "table" and out.itemID then return out.itemID end
+            local okL, link = pcall(C_TradeSkillUI.GetRecipeItemLink, recipeID)
+            local id = okL and type(link) == "string" and tonumber(link:match("item:(%d+)"))
+            if id then return id end
+        end
+    end
+    if tooltip.GetItem then
+        local _, link = tooltip:GetItem()
+        if link and C_Item and C_Item.GetItemInfoInstant then
+            return C_Item.GetItemInfoInstant(link)
+        end
+    end
+    return nil
+end
+
 local function OnItemTooltip(tooltip, data)
     if not ns.db or not ns.db.settings.tooltip then return end
     if tooltip ~= GameTooltip and tooltip ~= ItemRefTooltip
         and tooltip ~= ShoppingTooltip1 and tooltip ~= ShoppingTooltip2 then
         return
     end
-    local itemID = data and data.id
-    if not itemID and tooltip.GetItem then
-        local _, link = tooltip:GetItem()
-        if link and C_Item and C_Item.GetItemInfoInstant then
-            itemID = C_Item.GetItemInfoInstant(link)
-        end
-    end
+    local itemID = ns.TooltipItemID(tooltip, data)
     if not itemID then return end
 
     local crafters = ns.GetCraftersForItem(itemID, true)
