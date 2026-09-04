@@ -779,6 +779,19 @@ local function TopRows(ilvl)
       end
     end
   end
+  -- Una fila por nombre de receta (los rangos comparten nombre): se queda la de mejor beneficio
+  local best, deduped = {}, {}
+  for _, r in ipairs(rows) do
+    local key = r.name
+    local cur = best[key]
+    local better = not cur
+      or ((r.profit ~= nil) and (cur.profit == nil))
+      or (r.profit and cur.profit and r.profit > cur.profit)
+      or (r.profit == nil and cur.profit == nil and r.cost < cur.cost)
+    if better then best[key] = r end
+  end
+  for _, r in pairs(best) do table.insert(deduped, r) end
+  rows = deduped
   table.sort(rows, function(a, b)
     if (a.profit ~= nil) ~= (b.profit ~= nil) then return a.profit ~= nil end
     if a.profit and b.profit then return a.profit > b.profit end
@@ -1268,6 +1281,30 @@ SlashCmdList.CRAFTCHECKVALUE = function(msg)
       local ok, d = pcall(C_TradeSkillUI.GetRecipeOutputItemData, currentRecipeID, nil, nil, q)
       print("  q" .. q .. ": " .. (ok and d and d.hyperlink and (tostring(GetDetailedItemLevelInfo(d.hyperlink)) .. " " .. d.hyperlink) or ("sin datos " .. tostring(ok and d))))
     end
+  elseif msg:match("^icons") then
+    local arg = strtrim(msg:sub(6))
+    local itemID = tonumber(arg) or tonumber(arg:match("|Hitem:(%d+)"))
+    if not itemID then print(TAG .. ": /cv icons <enlace del objeto>") return end
+    local q = ReagentQuality(itemID)
+    print(TAG .. " icons: itemID " .. itemID .. " quality=" .. tostring(q))
+    if C_Texture and C_Texture.GetCraftingReagentQualityChatIcon then
+      local ok, icon = pcall(C_Texture.GetCraftingReagentQualityChatIcon, q)
+      print("  A) GetCraftingReagentQualityChatIcon: " .. tostring(ok and icon) .. "  raw=" .. tostring(ok and icon and icon:gsub("|", "||")))
+    end
+    if Professions and Professions.GetChatIconMarkupForQuality then
+      local ok, icon = pcall(Professions.GetChatIconMarkupForQuality, q)
+      print("  B) Professions.GetChatIconMarkupForQuality: " .. tostring(ok and icon))
+    end
+    for t = 1, 5 do
+      local atlas = "Professions-ChatIcon-Quality-Tier" .. t
+      if C_Texture.GetAtlasInfo(atlas) then print("  C" .. t .. ") " .. atlas .. ": " .. CreateAtlasMarkup(atlas, 16, 16)) end
+    end
+    for t = 1, 5 do
+      local atlas = "Professions-Icon-Quality-Tier" .. t .. "-Inv"
+      if C_Texture.GetAtlasInfo(atlas) then print("  D" .. t .. ") " .. atlas .. ": " .. CreateAtlasMarkup(atlas, 16, 16)) end
+    end
+    local _, link = GetItemInfo(itemID)
+    print("  enlace: " .. tostring(link) .. "  raw=" .. tostring(link and link:gsub("|", "||")))
   elseif msg:match("^probe") then
     ns.ValueProbe(strtrim(msg:sub(6)))
   elseif msg:match("^top") then
