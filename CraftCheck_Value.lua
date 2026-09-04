@@ -30,6 +30,7 @@ if locale == "esES" or locale == "esMX" then
   L["missing"] = "sin precio"
   L["incomplete"] = "incompleto"
   L["Item"] = "Objeto"
+  L["Not learned"] = "No aprendida"
   L["Sale (gold quality) in AH"] = "Venta calidad oro en la AH"
   L["Reagents silver (needs Concentration)"] = "Reagentes plata (requiere Concentración)"
   L["Reagents gold"] = "Reagentes oro"
@@ -105,6 +106,7 @@ local win                   -- panel lateral de la ventana de profesión (se cre
 local currentRecipeID
 local recipeByOutput = {}   -- [itemID fabricado] = recipeID (profesion abierta)
 local qualityByOutput = {}  -- [itemID de cada calidad] = recipeID (consumibles con calidades: pociones, frascos...)
+local learnedRecipe = {}    -- [recipeID] = true si está aprendida (profesión abierta)
 local queue, queued = {}, {}      -- entradas { itemID = n } o { name = s }
 local pending                     -- entrada en curso
 local scanTotal = 0
@@ -718,11 +720,17 @@ end
 BuildTooltip = function(tooltip, data)
   local _, _, _, _, _, classID = GetItemInfoInstant(data.id)
   if classID ~= Enum.ItemClass.Recipe then
+    local rid = qualityByOutput[data.id] or recipeByOutput[data.id]
+    if not rid then return end
+    local learned = learnedRecipe[rid]
+    -- Recetas no aprendidas: solo dentro de la ventana de profesión
+    if not learned and not (ProfessionsFrame and ProfessionsFrame:IsShown()) then return end
     if qualityByOutput[data.id] then
-      ConsumableTooltip(tooltip, data.id, qualityByOutput[data.id])
-    elseif recipeByOutput[data.id] then
-      KnownRecipeTooltip(tooltip, data.id, recipeByOutput[data.id])
+      ConsumableTooltip(tooltip, data.id, rid)
+    else
+      KnownRecipeTooltip(tooltip, data.id, rid)
     end
+    if not learned then tooltip:AddLine("|cff808080" .. L["Not learned"] .. "|r") end
     return
   end
   lastTooltipData = data
@@ -1230,18 +1238,20 @@ local function OnEvent(_, event, arg1)
     local mine = CraftValueDB.recipes[char]
     wipe(recipeByOutput)
     wipe(qualityByOutput)
+    wipe(learnedRecipe)
     for _, id in ipairs(C_TradeSkillUI.GetAllRecipeIDs() or {}) do
       local info = C_TradeSkillUI.GetRecipeInfo(id)
-      if info and info.learned and IsConsumableRecipe(id) then
+      if info then learnedRecipe[id] = info.learned and true or false end
+      if info and not info.isRecraft and IsConsumableRecipe(id) then
         for _, qid in ipairs(QualityItemIDs(id) or {}) do
-          qualityByOutput[qid] = id
-          mine[qid] = { recipeID = id, prof = profName, learned = true, difficulty = info.relativeDifficulty, when = time() }
+          if info.learned or not qualityByOutput[qid] then qualityByOutput[qid] = id end
+          mine[qid] = { recipeID = id, prof = profName, learned = info.learned and true or false, difficulty = info.relativeDifficulty, when = time() }
         end
       end
       if info and not info.isRecraft and info.isSalvageRecipe ~= true then
         local out = OutputItemID(id)
         if out then
-          if info.learned then recipeByOutput[out] = id end
+          if info.learned or not recipeByOutput[out] then recipeByOutput[out] = id end
           local qlevels = RecipeQualityLevels(id)
           mine[out] = {
             recipeID = id, prof = profName, learned = info.learned and true or false,

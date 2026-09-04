@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.3.1
+
+- Value info now also appears for recipes you have not learned while the profession window is open (with a "Not learned" note), so you can judge whether a recipe is worth learning. Outside the profession window it still shows only for learned recipes.
+- Fix: the tooltip of a recipe's result item in the profession window showed neither the crafter list nor the Value section (that tooltip carries no item id; it is now resolved from the recipe).
+- Consumables without quality tiers (for example PvP flasks) are priced by item id instead of by item level.
+
 ## v1.3.0
 
 - Value for consumables with quality tiers (potions, phials, flasks) and enchants: the tooltip shows the Auction House price of the gold-quality version, the reagent cost with silver reagents (craft gold with Concentration) and with gold reagents, and the profit with each, all per unit. Works when hovering any quality of the item, including in the Auction House.
