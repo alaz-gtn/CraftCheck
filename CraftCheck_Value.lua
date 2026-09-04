@@ -33,6 +33,7 @@ if locale == "esES" or locale == "esMX" then
   L["Sale (gold quality) in AH"] = "Venta calidad oro en la AH"
   L["Reagents silver (needs Concentration)"] = "Reagentes plata (requiere Concentración)"
   L["Reagents gold"] = "Reagentes oro"
+  L["Cost with gold mats"] = "Coste con mats oro"
   L["Profit with silver mats"] = "Beneficio con mats plata"
   L["Profit with gold mats"] = "Beneficio con mats oro"
   L["per craft"] = "por fabricación"
@@ -378,7 +379,7 @@ local function KnownRecipes()
   for _, id in ipairs(C_TradeSkillUI.GetAllRecipeIDs() or {}) do
     local info = C_TradeSkillUI.GetRecipeInfo(id)
     if info and info.learned and info.craftable ~= false and not info.isRecraft
-       and info.isSalvageRecipe ~= true and info.isEnchantingRecipe ~= true then
+       and info.isSalvageRecipe ~= true and (info.isEnchantingRecipe ~= true or IsConsumableRecipe(id)) then
       table.insert(out, id)
     end
   end
@@ -533,7 +534,11 @@ local function QualityIconForItem(itemID)
   local name = GetItemInfo(itemID)
   local markup = type(name) == "string" and name:match("(|A:[^|]+|a)")
   if markup then return markup end
-  return QualityIcon(ReagentQuality(itemID))
+  if C_Item and C_Item.RequestLoadItemDataByID then pcall(C_Item.RequestLoadItemDataByID, itemID) end
+  local q = ReagentQuality(itemID)
+  local atlas12 = q and ("Professions-ChatIcon-Quality-12-Tier" .. q)
+  if atlas12 and C_Texture.GetAtlasInfo(atlas12) then return CreateAtlasMarkup(atlas12, 17, 15) end
+  return nil
 end
 
 local function IlvlLabel(craftedID, ilvl)
@@ -742,7 +747,7 @@ end
 ---------------------------------------------------------------------------
 -- Ventana (visible con la profesion abierta)
 ---------------------------------------------------------------------------
-local ROW_H, BASE_H, MAX_ROWS_VISIBLE, WIN_W = 20, 150, 20, 660
+local ROW_H, BASE_H, MAX_ROWS_VISIBLE, WIN_W = 20, 136, 20, 660
 local COL_NAME, COL_MONEY = 250, 110
 
 -- ilvl que produce cada calidad (1..5) de una receta
@@ -775,16 +780,19 @@ local function TopRows(ilvl)
   local rows = {}
   for _, id in ipairs(KnownRecipes()) do
     if IsConsumableRecipe(id) then
-      -- Consumibles: venta a calidad oro, coste con reagentes oro
+      -- Consumibles y encantamientos: coste con reagentes plata (se fabrica oro con Concentración),
+      -- venta a calidad oro, beneficio = venta oro - coste plata. Todo por unidad.
       local price, goldID = ConsumableGoldPrice(id)
-      local cost, missing, qty = MatsCostAt(id, TIER_GOLD)
-      if cost and cost > 0 and missing == 0 then
+      local costS, missS, qty = MatsCostAt(id, TIER_SILVER)
+      local costG, missG = MatsCostAt(id, TIER_GOLD)
+      if costS and costS > 0 and missS == 0 then
         qty = qty or 1
-        cost = cost / qty   -- por unidad
+        costS = costS / qty
+        costG = (costG and missG == 0) and (costG / qty) or nil
         local icon = QualityIconForItem(goldID) or ""
-        table.insert(rows, { recipeID = id, consumable = true, qty = qty,
-                             name = icon .. " " .. C_TradeSkillUI.GetRecipeInfo(id).name .. (qty > 1 and (" |cffaaaaaax" .. qty .. "|r") or ""),
-                             price = price, cost = cost, profit = price and (price * AH_CUT - cost) or nil })
+        table.insert(rows, { recipeID = id, consumable = true, qty = qty, costGold = costG,
+                             name = icon .. " " .. C_TradeSkillUI.GetRecipeInfo(id).name,
+                             price = price, cost = costS, profit = price and (price * AH_CUT - costS) or nil })
       end
     else
       local out = OutputItemID(id)
@@ -821,9 +829,14 @@ local function SetStatus(txt) if win then win.status:SetText(txt or "") end end
 
 ShowTop = function()
   if ns.OnOrderRecorded then ns.OnOrderRecorded() end
-  local ilvl = tonumber(win.ilvlBox:GetText()) or CraftValueDB.ilvl
-  CraftValueDB.ilvl = ilvl
+  local ilvl = CraftValueDB.ilvl or 232
   local rows = TopRows(ilvl)
+  local hasConsumables = false
+  for _, r in ipairs(rows) do if r.consumable then hasConsumables = true break end end
+  local silverIcon = QualityIcon(1) or ""
+  local goldIcon = QualityIcon(2) or ""
+  win.h2:SetText(L["Cost"] .. (hasConsumables and (" " .. silverIcon) or ""))
+  win.h3:SetText(L["AH"] .. (hasConsumables and (" " .. goldIcon) or ""))
   -- reutilizar/crear filas
   for i, r in ipairs(rows) do
     local row = win.rows[i]
@@ -843,15 +856,15 @@ ShowTop = function()
       row:SetScript("OnClick", function(b) if b.recipeID then C_TradeSkillUI.OpenRecipe(b.recipeID) end end)
       row:SetScript("OnEnter", function(b)
         if not (b.consumable and b.recipeID) then return end
-        local cs, ms = MatsCostAt(b.recipeID, TIER_SILVER)
-        if cs then cs = cs / (b.qty or 1) end
         GameTooltip:SetOwner(b, "ANCHOR_RIGHT")
         GameTooltip:SetText(b.rowName or "", 1, 1, 1)
-        GameTooltip:AddDoubleLine(L["Reagents silver (needs Concentration)"], cs and Money(cs) or "?", 1, 0.82, 0, 1, 1, 1)
-        if cs and ms == 0 and b.salePrice then
-          local pr = b.salePrice * AH_CUT - cs
-          GameTooltip:AddDoubleLine(L["Profit with silver mats"], Money(pr), 1, 0.82, 0, pr >= 0 and 0.25 or 1, pr >= 0 and 1 or 0.25, 0.25)
+        GameTooltip:AddDoubleLine(L["Reagents silver (needs Concentration)"], b.costSilver and Money(b.costSilver) or "?", 1, 0.82, 0, 1, 1, 1)
+        GameTooltip:AddDoubleLine(L["Cost with gold mats"], b.costGold and Money(b.costGold) or "?", 1, 0.82, 0, 1, 1, 1)
+        if b.costGold and b.salePrice then
+          local pr = b.salePrice * AH_CUT - b.costGold
+          GameTooltip:AddDoubleLine(L["Profit with gold mats"], Money(pr), 1, 0.82, 0, pr >= 0 and 0.25 or 1, pr >= 0 and 1 or 0.25, 0.25)
         end
+        if (b.qty or 1) > 1 then GameTooltip:AddLine("x" .. b.qty .. " " .. L["per craft"] .. ", " .. L["per unit"], 0.6, 0.6, 0.6) end
         GameTooltip:Show()
       end)
       row:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -861,6 +874,8 @@ ShowTop = function()
     row.recipeID = r.recipeID
     row.consumable = r.consumable
     row.qty = r.qty
+    row.costSilver = r.consumable and r.cost or nil
+    row.costGold = r.costGold
     row.rowName = r.name
     row.salePrice = r.price
     row.name:SetText(i .. ". " .. r.name)
@@ -875,14 +890,14 @@ ShowTop = function()
   win.content:SetHeight(math.max(n * ROW_H, 1))
   local visible = math.min(n, MAX_ROWS_VISIBLE)
   win.scroll:SetHeight(math.max(visible * ROW_H, 1))
+  if win.scroll.ScrollBar then win.scroll.ScrollBar:SetShown(n > visible) end
   win:SetHeight(BASE_H + (n > 0 and (visible * ROW_H + 26) or 0))
   win.header:SetShown(n > 0)
+  win.separator:SetShown(true)
   if n == 0 then
     SetStatus(string.format(L["No recipes with ilvl %d in the AH and full cost. "], ilvl) .. (HasAuctionator() and L["Run Full Scan in Auctionator."] or L["Scan first."]))
   else
-    local priced = 0
-    for _, r in ipairs(rows) do if r.price then priced = priced + 1 end end
-    SetStatus(string.format(L["%d recipes with ilvl %d listed in the AH."], priced, ilvl) .. " (" .. n .. " " .. L["total"] .. ")")
+    SetStatus("")
   end
 end
 
@@ -902,36 +917,31 @@ local function BuildWindow()
   local title = win:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
   title:SetPoint("TOPLEFT", 14, -12); title:SetText(TAG)
 
-  local lbl = win:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-  lbl:SetPoint("TOPLEFT", 14, -44); lbl:SetText(L["ilvl"] .. ":")
-  win.ilvlBox = CreateFrame("EditBox", nil, win, "InputBoxTemplate")
-  win.ilvlBox:SetSize(52, 22); win.ilvlBox:SetPoint("LEFT", lbl, "RIGHT", 10, 0)
-  win.ilvlBox:SetAutoFocus(false); win.ilvlBox:SetNumeric(true); win.ilvlBox:SetMaxLetters(4)
-  win.ilvlBox:SetText(tostring(CraftValueDB.ilvl))
-  win.ilvlBox:SetScript("OnEnterPressed", function(b) b:ClearFocus(); ShowTop() end)
-  win.ilvlBox:SetScript("OnEscapePressed", function(b) b:ClearFocus() end)
-
-  local anchor = win.ilvlBox
+  win.btnTop = CreateFrame("Button", nil, win, "UIPanelButtonTemplate")
+  win.btnTop:SetSize(110, 22); win.btnTop:SetPoint("TOPLEFT", 14, -40); win.btnTop:SetText(L["Top"])
+  win.btnTop:SetScript("OnClick", ShowTop)
   if not HasAuctionator() then
     win.btnScan = CreateFrame("Button", nil, win, "UIPanelButtonTemplate")
-    win.btnScan:SetSize(110, 22); win.btnScan:SetPoint("LEFT", win.ilvlBox, "RIGHT", 12, 0); win.btnScan:SetText(L["Scan AH"])
+    win.btnScan:SetSize(110, 22); win.btnScan:SetPoint("LEFT", win.btnTop, "RIGHT", 6, 0); win.btnScan:SetText(L["Scan AH"])
     win.btnScan:SetScript("OnClick", function() ns.ValueFullScan() end)
-    anchor = win.btnScan
   end
 
-  win.btnTop = CreateFrame("Button", nil, win, "UIPanelButtonTemplate")
-  win.btnTop:SetSize(110, 22); win.btnTop:SetPoint("LEFT", anchor, "RIGHT", anchor == win.ilvlBox and 12 or 6, 0); win.btnTop:SetText(L["Top"])
-  win.btnTop:SetScript("OnClick", ShowTop)
-
-  win.status = win:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-  win.status:SetPoint("TOPLEFT", 14, -74); win.status:SetPoint("RIGHT", -14, 0); win.status:SetJustifyH("LEFT")
-  win.status:SetText(HasAuctionator() and L["Prices: Auctionator Full Scan. Press Top."] or L["With the AH open: Scan AH. Then: Top."])
-
-  -- Órdenes completadas por este personaje
+  -- Órdenes completadas por este personaje y total del grupo de reinos
   win.orders = win:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-  win.orders:SetPoint("TOPLEFT", 14, -94); win.orders:SetPoint("RIGHT", -14, 0); win.orders:SetJustifyH("LEFT")
+  win.orders:SetPoint("TOPLEFT", 14, -72); win.orders:SetPoint("RIGHT", -14, 0); win.orders:SetJustifyH("LEFT")
   win.ordersGroup = win:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-  win.ordersGroup:SetPoint("TOPLEFT", 14, -112); win.ordersGroup:SetPoint("RIGHT", -14, 0); win.ordersGroup:SetJustifyH("LEFT")
+  win.ordersGroup:SetPoint("TOPLEFT", 14, -90); win.ordersGroup:SetPoint("RIGHT", -14, 0); win.ordersGroup:SetJustifyH("LEFT")
+
+  -- Separador entre las órdenes y la lista
+  win.separator = win:CreateTexture(nil, "ARTWORK")
+  win.separator:SetColorTexture(0.55, 0.45, 0.25, 0.8)
+  win.separator:SetHeight(1)
+  win.separator:SetPoint("TOPLEFT", 14, -112); win.separator:SetPoint("TOPRIGHT", -14, -112)
+
+  -- Mensajes (solo cuando no hay filas o durante un escaneo)
+  win.status = win:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  win.status:SetPoint("TOPLEFT", 14, -122); win.status:SetPoint("RIGHT", -14, 0); win.status:SetJustifyH("LEFT")
+  win.status:SetText(HasAuctionator() and L["Prices: Auctionator Full Scan. Press Top."] or L["With the AH open: Scan AH. Then: Top."])
   ns.OnOrderRecorded = function()
     if not win then return end
     local CL = ns.L or {}
@@ -944,21 +954,21 @@ local function BuildWindow()
   ns.OnOrderRecorded()
 
   win.header = CreateFrame("Frame", nil, win)
-  win.header:SetPoint("TOPLEFT", 14, -134); win.header:SetPoint("RIGHT", -30, 0); win.header:SetHeight(ROW_H)
+  win.header:SetPoint("TOPLEFT", 14, -120); win.header:SetPoint("RIGHT", -30, 0); win.header:SetHeight(ROW_H)
   local function H(text, anchorTo, width, justify)
     local fsH = win.header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     if anchorTo then fsH:SetPoint("LEFT", anchorTo, "RIGHT", 4, 0) else fsH:SetPoint("LEFT", 2, 0) end
     fsH:SetWidth(width); fsH:SetJustifyH(justify); fsH:SetText(text)
     return fsH
   end
-  local h1 = H(L["Recipe"], nil, COL_NAME, "LEFT")
-  local h2 = H(L["Cost"], h1, COL_MONEY, "RIGHT")
-  local h3 = H(L["AH"], h2, COL_MONEY, "RIGHT")
-  H(L["Profit"], h3, COL_MONEY, "RIGHT")
+  local h1 = H(L["Item"], nil, COL_NAME, "LEFT")
+  win.h2 = H(L["Cost"], h1, COL_MONEY, "RIGHT")
+  win.h3 = H(L["AH"], win.h2, COL_MONEY, "RIGHT")
+  H(L["Profit"], win.h3, COL_MONEY, "RIGHT")
   win.header:Hide()
 
   win.scroll = CreateFrame("ScrollFrame", nil, win, "UIPanelScrollFrameTemplate")
-  win.scroll:SetPoint("TOPLEFT", 14, -156); win.scroll:SetPoint("RIGHT", -30, 0); win.scroll:SetHeight(1)
+  win.scroll:SetPoint("TOPLEFT", 14, -142); win.scroll:SetPoint("RIGHT", -30, 0); win.scroll:SetHeight(1)
   win.content = CreateFrame("Frame", nil, win.scroll)
   win.content:SetSize(WIN_W - 50, 1)
   win.scroll:SetScript("OnMouseWheel", function(self, delta)
@@ -1292,6 +1302,10 @@ SlashCmdList.CRAFTCHECKVALUE = function(msg)
     local n = tonumber(msg:match("%d+"))
     if n then CraftValueDB.span = n end
     print(TAG .. ": span = " .. tostring(CraftValueDB.span or 30))
+  elseif msg:match("^ilvl%s+%d+") then
+    CraftValueDB.ilvl = tonumber(msg:match("%d+"))
+    print(TAG .. ": ilvl = " .. CraftValueDB.ilvl)
+    if win and win:IsShown() then ShowTop() end
   elseif msg == "ilvl" then
     if not currentRecipeID then print(TAG .. ": selecciona una receta.") return end
     local info = C_TradeSkillUI.GetRecipeInfo(currentRecipeID)

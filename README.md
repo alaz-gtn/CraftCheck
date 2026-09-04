@@ -43,7 +43,7 @@ Open each profession once on each character (and each expansion tab). CraftCheck
 - `/cc orders` – tips earned from crafting orders per character (`/cc orders reset` clears the current character)
 - `/cv top [n]` – rank your known recipes by profit (profession window open)
 - `/cv span N` – how far below the target ilvl a recipe's base item may be to count (default 30)
-- `/cv ilvl` – show the item levels the selected recipe produces per quality
+- `/cv ilvl N` – set the target item level for gear prices (default 232); `/cv ilvl` alone shows the item levels the selected recipe produces per quality
 - `/cv full` / `/cv all` / `/cv scan` / `/cv reset` – own Auction House scanning (only without Auctionator)
 
 ## Support
