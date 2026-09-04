@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.3.0
+
+- Value for consumables with quality tiers (potions, phials, flasks...): the tooltip shows the Auction House price of the gold-quality version, the reagent cost with silver reagents (needs Concentration) and with gold reagents, and the profit with each. Works when hovering any quality of the item, including in the Auction House.
+- The Top ranking in the profession panel now includes consumables at gold quality (gold reagents), mixed with gear and sorted by profit. Hovering a consumable row shows the silver-reagent cost and profit.
+
 ## v1.2.1
 
 - Value panel and its button are shown only on the Recipes tab of the profession window; they hide on Specializations and Crafting Orders and come back when you return.

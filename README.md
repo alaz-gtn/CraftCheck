@@ -19,7 +19,7 @@ A panel (minimap button or `/cc`) lists every character grouped by realm group, 
 Exact for the logged-in character, estimated with regeneration for your alts, so you know who can actually take the order.
 
 **Crafting value (profit vs Auction House)**
-Hover any pattern, recipe or craftable item and see the recipe difficulty, the reagent cost at max quality, the Auction House price of the crafted item at your target item level and the profit after the 5% cut. In the profession window a "CraftCheck" button opens a side panel ranking your known recipes by profit (`/cv top`). Prices come from Auctionator's Full Scan if you have it; otherwise CraftCheck can scan the Auction House itself.
+Hover any pattern, recipe or craftable item and see the recipe difficulty, the reagent cost at max quality, the Auction House price of the crafted item at your target item level and the profit after the 5% cut. In the profession window a "CraftCheck" button opens a side panel ranking your known recipes by profit (`/cv top`). Consumables with quality tiers (potions, phials, flasks...) get their own view: sale price of the gold-quality version, reagent cost with silver reagents (needs Concentration) and with gold reagents, and the profit for each. They also appear in the Top ranking at gold quality. Prices come from Auctionator's Full Scan if you have it; otherwise CraftCheck can scan the Auction House itself.
 
 **Crafting order earnings**
 Every fulfilled crafting order is counted per character: how many personal, public, guild and NPC orders and how much gold in tips. Shown in the profession side panel, in the character list and with `/cc orders`.

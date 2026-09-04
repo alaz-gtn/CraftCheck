@@ -30,6 +30,13 @@ if locale == "esES" or locale == "esMX" then
   L["missing"] = "sin precio"
   L["incomplete"] = "incompleto"
   L["Item"] = "Objeto"
+  L["Sale (gold quality) in AH"] = "Venta calidad oro en la AH"
+  L["Reagents silver (needs Concentration)"] = "Reagentes plata (requiere Concentración)"
+  L["Reagents gold"] = "Reagentes oro"
+  L["Profit with silver mats"] = "Beneficio con mats plata"
+  L["Profit with gold mats"] = "Beneficio con mats oro"
+  L["per craft"] = "por fabricación"
+  L["no price in AH"] = "sin precio en la AH"
   L["Binds when picked up: crafting orders only, not sold in the AH"] = "Se liga al recogerlo: solo órdenes de fabricación, no se vende en la AH"
   L["in AH"] = "en la AH"
   L["own scan"] = "escaneo propio"
@@ -95,6 +102,7 @@ InitValueDB()
 local win                   -- panel lateral de la ventana de profesión (se crea al cargar Blizzard_Professions)
 local currentRecipeID
 local recipeByOutput = {}   -- [itemID fabricado] = recipeID (profesion abierta)
+local qualityByOutput = {}  -- [itemID de cada calidad] = recipeID (consumibles con calidades: pociones, frascos...)
 local queue, queued = {}, {}      -- entradas { itemID = n } o { name = s }
 local pending                     -- entrada en curso
 local scanTotal = 0
@@ -302,6 +310,54 @@ local function MatsCost(recipeID)
   return total, lines, missing
 end
 
+-- Recetas con calidades de objeto (pociones, frascos...): itemIDs por calidad, de bronce a oro
+local function QualityItemIDs(recipeID)
+  local ok, ids = pcall(C_TradeSkillUI.GetRecipeQualityItemIDs, recipeID)
+  if ok and type(ids) == "table" and #ids > 1 then return ids end
+  return nil
+end
+
+local function IsConsumableRecipe(recipeID)
+  local ids = QualityItemIDs(recipeID)
+  if not ids then return false end
+  local _, _, _, equipLoc = GetItemInfoInstant(ids[1])
+  return not equipLoc or equipLoc == "" or equipLoc == "INVTYPE_NON_EQUIP_IGNORE"
+end
+
+-- Reagentes básicos a una calidad concreta (1 bronce, 2 plata, 3 oro); sin calidades -> el único
+local function ReagentsAtQuality(recipeID, q)
+  local schematic = C_TradeSkillUI.GetRecipeSchematic(recipeID, false)
+  if not schematic then return nil end
+  local out = {}
+  for _, slot in ipairs(schematic.reagentSlotSchematics) do
+    if slot.reagentType == Enum.CraftingReagentType.Basic and slot.required and slot.reagents and #slot.reagents > 0 then
+      local r = slot.reagents[math.min(q, #slot.reagents)]
+      table.insert(out, { itemID = r.itemID, qty = slot.quantityRequired or 1 })
+    end
+  end
+  return out, schematic.quantityMin or 1
+end
+
+-- Coste total de reagentes a esa calidad: total, nº sin precio, unidades por fabricación
+local function MatsCostAt(recipeID, q)
+  local reagents, qty = ReagentsAtQuality(recipeID, q)
+  if not reagents then return nil end
+  local total, missing = 0, 0
+  for _, r in ipairs(reagents) do
+    local price = ReagentPrice(r.itemID)
+    if price then total = total + price * r.qty else missing = missing + 1 end
+  end
+  return total, missing, qty
+end
+
+-- Precio en la AH del objeto de calidad oro (la última) y su itemID
+local function ConsumableGoldPrice(recipeID)
+  local ids = QualityItemIDs(recipeID)
+  if not ids then return nil end
+  local goldID = ids[#ids]
+  return ReagentPrice(goldID), goldID
+end
+
 local function OutputItemID(recipeID)
   local info = C_TradeSkillUI.GetRecipeInfo(recipeID)
   if not info then return nil end
@@ -438,6 +494,28 @@ end
 -- "ilvl 232" o el icono de calidad de la receta si sabemos que calidad da ese ilvl
 local TIER_ILVL = { [206] = 1, [212] = 2, [218] = 3, [225] = 4, [232] = 5 }  -- tier de Midnight
 
+-- Icono de calidad de fabricación (1..5) según lo que ofrezca el cliente
+local function QualityIcon(q)
+  if not q then return nil end
+  if C_Texture and C_Texture.GetCraftingReagentQualityChatIcon then
+    local ok, icon = pcall(C_Texture.GetCraftingReagentQualityChatIcon, q)
+    if ok and type(icon) == "string" and icon ~= "" then return icon end
+  end
+  if Professions and Professions.GetChatIconMarkupForQuality then
+    local ok, icon = pcall(Professions.GetChatIconMarkupForQuality, q)
+    if ok and type(icon) == "string" and icon ~= "" then return icon end
+  end
+  local atlas = "Professions-ChatIcon-Quality-Tier" .. q
+  if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas) and CreateAtlasMarkup then
+    return CreateAtlasMarkup(atlas, 16, 16)
+  end
+  local atlas2 = "Professions-Icon-Quality-Tier" .. q .. "-Inv"
+  if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas2) and CreateAtlasMarkup then
+    return CreateAtlasMarkup(atlas2, 16, 16)
+  end
+  return nil
+end
+
 local function IlvlLabel(craftedID, ilvl)
   local q
   -- 1) si la receta registrada dice que calidad da ese ilvl, usarla
@@ -512,6 +590,45 @@ local function KnownRecipeTooltip(tooltip, itemID, recipeID)
   AddAHSection(tooltip, itemID, cost, cost and #missing == 0)
 end
 
+-- Consumible con calidades (poción, frasco...) de una receta que conoces
+local function ConsumableTooltip(tooltip, itemID, recipeID)
+  tooltip:AddLine(" ")
+  tooltip:AddLine(TAG)
+  AddSkillLine(tooltip, itemID)
+  local price, goldID = ConsumableGoldPrice(recipeID)
+  local costSilver, missS, qty = MatsCostAt(recipeID, 2)
+  local costGold, missG = MatsCostAt(recipeID, 3)
+  qty = qty or 1
+  local icon = QualityIcon(3) or ""
+  local qtyTag = qty > 1 and (" x" .. qty .. " " .. L["per craft"]) or ""
+  if price then
+    tooltip:AddDoubleLine(L["Sale (gold quality) in AH"] .. " " .. icon .. qtyTag, Money(price * qty), 1, 0.82, 0, 1, 1, 1)
+  else
+    tooltip:AddLine(L["Sale (gold quality) in AH"] .. " " .. icon .. ": " .. L["no price in AH"], 1, 0.5, 0.5)
+    if not HasAuctionator() and goldID and IsStale(Cache(goldID)) then
+      Enqueue({ itemID = goldID })
+      if AHOpen() then RunQueue() end
+    end
+  end
+  if costSilver then
+    tooltip:AddDoubleLine(L["Reagents silver (needs Concentration)"] .. (missS == 0 and "" or " (|cffff4040" .. missS .. " " .. L["missing"] .. "|r)"), Money(costSilver), 1, 0.82, 0, 1, 1, 1)
+  end
+  if costGold then
+    tooltip:AddDoubleLine(L["Reagents gold"] .. (missG == 0 and "" or " (|cffff4040" .. missG .. " " .. L["missing"] .. "|r)"), Money(costGold), 1, 0.82, 0, 1, 1, 1)
+  end
+  if price then
+    local sale = price * qty * AH_CUT
+    if costSilver and missS == 0 then
+      local pr = sale - costSilver
+      tooltip:AddDoubleLine(L["Profit with silver mats"], Money(pr), 1, 0.82, 0, pr >= 0 and 0.25 or 1, pr >= 0 and 1 or 0.25, 0.25)
+    end
+    if costGold and missG == 0 then
+      local pr = sale - costGold
+      tooltip:AddDoubleLine(L["Profit with gold mats"], Money(pr), 1, 0.82, 0, pr >= 0 and 0.25 or 1, pr >= 0 and 1 or 0.25, 0.25)
+    end
+  end
+end
+
 -- Cache de lo que se pinta en el tooltip: evita recalcular en cada frame
 local ttCache = {}          -- [itemID] = { when = t, lines = { {kind,...} } }
 local TT_TTL = 3
@@ -554,7 +671,11 @@ end
 BuildTooltip = function(tooltip, data)
   local _, _, _, _, _, classID = GetItemInfoInstant(data.id)
   if classID ~= Enum.ItemClass.Recipe then
-    if recipeByOutput[data.id] then KnownRecipeTooltip(tooltip, data.id, recipeByOutput[data.id]) end
+    if qualityByOutput[data.id] then
+      ConsumableTooltip(tooltip, data.id, qualityByOutput[data.id])
+    elseif recipeByOutput[data.id] then
+      KnownRecipeTooltip(tooltip, data.id, recipeByOutput[data.id])
+    end
     return
   end
   lastTooltipData = data
@@ -631,12 +752,25 @@ end
 local function TopRows(ilvl)
   local rows = {}
   for _, id in ipairs(KnownRecipes()) do
-    local out = OutputItemID(id)
-    local price = out and ItemLevelPrice(out, ilvl)
-    local cost, _, missing = MatsCost(id)
-    if cost and cost > 0 and #missing == 0 and RecipeHasIlvl(id, ilvl) then
-      table.insert(rows, { recipeID = id, name = C_TradeSkillUI.GetRecipeInfo(id).name,
-                           price = price, cost = cost, profit = price and (price * AH_CUT - cost) or nil })
+    if IsConsumableRecipe(id) then
+      -- Consumibles: venta a calidad oro, coste con reagentes oro
+      local price = ConsumableGoldPrice(id)
+      local cost, missing, qty = MatsCostAt(id, 3)
+      if cost and cost > 0 and missing == 0 then
+        qty = qty or 1
+        local total = price and price * qty or nil
+        table.insert(rows, { recipeID = id, consumable = true,
+                             name = (QualityIcon(3) or "") .. " " .. C_TradeSkillUI.GetRecipeInfo(id).name .. (qty > 1 and (" x" .. qty) or ""),
+                             price = total, cost = cost, profit = total and (total * AH_CUT - cost) or nil })
+      end
+    else
+      local out = OutputItemID(id)
+      local price = out and ItemLevelPrice(out, ilvl)
+      local cost, _, missing = MatsCost(id)
+      if cost and cost > 0 and #missing == 0 and RecipeHasIlvl(id, ilvl) then
+        table.insert(rows, { recipeID = id, name = C_TradeSkillUI.GetRecipeInfo(id).name,
+                             price = price, cost = cost, profit = price and (price * AH_CUT - cost) or nil })
+      end
     end
   end
   table.sort(rows, function(a, b)
@@ -671,10 +805,26 @@ ShowTop = function()
       row.profit:SetPoint("LEFT", row.price, "RIGHT", 4, 0); row.profit:SetWidth(COL_MONEY); row.profit:SetJustifyH("RIGHT")
       row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
       row:SetScript("OnClick", function(b) if b.recipeID then C_TradeSkillUI.OpenRecipe(b.recipeID) end end)
+      row:SetScript("OnEnter", function(b)
+        if not (b.consumable and b.recipeID) then return end
+        local cs, ms = MatsCostAt(b.recipeID, 2)
+        GameTooltip:SetOwner(b, "ANCHOR_RIGHT")
+        GameTooltip:SetText(b.rowName or "", 1, 1, 1)
+        GameTooltip:AddDoubleLine(L["Reagents silver (needs Concentration)"], cs and Money(cs) or "?", 1, 0.82, 0, 1, 1, 1)
+        if cs and ms == 0 and b.salePrice then
+          local pr = b.salePrice * AH_CUT - cs
+          GameTooltip:AddDoubleLine(L["Profit with silver mats"], Money(pr), 1, 0.82, 0, pr >= 0 and 0.25 or 1, pr >= 0 and 1 or 0.25, 0.25)
+        end
+        GameTooltip:Show()
+      end)
+      row:SetScript("OnLeave", function() GameTooltip:Hide() end)
       win.rows[i] = row
     end
     row:SetPoint("TOP", 0, -(i - 1) * ROW_H)
     row.recipeID = r.recipeID
+    row.consumable = r.consumable
+    row.rowName = r.name
+    row.salePrice = r.price
     row.name:SetText(i .. ". " .. r.name)
     row.cost:SetText(MoneyGS(r.cost))
     row.price:SetText(r.price and MoneyGS(r.price) or "|cff808080—|r")
@@ -1011,8 +1161,15 @@ local function OnEvent(_, event, arg1)
     CraftValueDB.recipes[char] = CraftValueDB.recipes[char] or {}
     local mine = CraftValueDB.recipes[char]
     wipe(recipeByOutput)
+    wipe(qualityByOutput)
     for _, id in ipairs(C_TradeSkillUI.GetAllRecipeIDs() or {}) do
       local info = C_TradeSkillUI.GetRecipeInfo(id)
+      if info and info.learned and IsConsumableRecipe(id) then
+        for _, qid in ipairs(QualityItemIDs(id) or {}) do
+          qualityByOutput[qid] = id
+          mine[qid] = { recipeID = id, prof = profName, learned = true, difficulty = info.relativeDifficulty, when = time() }
+        end
+      end
       if info and not info.isRecraft and info.isSalvageRecipe ~= true then
         local out = OutputItemID(id)
         if out then
