@@ -324,14 +324,19 @@ local function IsConsumableRecipe(recipeID)
   return not equipLoc or equipLoc == "" or equipLoc == "INVTYPE_NON_EQUIP_IGNORE"
 end
 
--- Reagentes básicos a una calidad concreta (1 bronce, 2 plata, 3 oro); sin calidades -> el único
-local function ReagentsAtQuality(recipeID, q)
+-- Niveles de reagente: TIER_GOLD = la mejor calidad, TIER_SILVER = la anterior a la mejor.
+-- Se cuenta desde el final porque el número de calidades cambia (Midnight solo tiene plata y oro).
+local TIER_GOLD, TIER_SILVER = 0, 1   -- desplazamiento desde la última calidad
+
+-- Reagentes básicos a un nivel dado (desplazamiento desde la mejor calidad); sin calidades -> el único
+local function ReagentsAtQuality(recipeID, backFromBest)
   local schematic = C_TradeSkillUI.GetRecipeSchematic(recipeID, false)
   if not schematic then return nil end
   local out = {}
   for _, slot in ipairs(schematic.reagentSlotSchematics) do
     if slot.reagentType == Enum.CraftingReagentType.Basic and slot.required and slot.reagents and #slot.reagents > 0 then
-      local r = slot.reagents[math.min(q, #slot.reagents)]
+      local idx = math.max(1, #slot.reagents - backFromBest)
+      local r = slot.reagents[idx]
       table.insert(out, { itemID = r.itemID, qty = slot.quantityRequired or 1 })
     end
   end
@@ -339,8 +344,8 @@ local function ReagentsAtQuality(recipeID, q)
 end
 
 -- Coste total de reagentes a esa calidad: total, nº sin precio, unidades por fabricación
-local function MatsCostAt(recipeID, q)
-  local reagents, qty = ReagentsAtQuality(recipeID, q)
+local function MatsCostAt(recipeID, backFromBest)
+  local reagents, qty = ReagentsAtQuality(recipeID, backFromBest)
   if not reagents then return nil end
   local total, missing = 0, 0
   for _, r in ipairs(reagents) do
@@ -596,10 +601,10 @@ local function ConsumableTooltip(tooltip, itemID, recipeID)
   tooltip:AddLine(TAG)
   AddSkillLine(tooltip, itemID)
   local price, goldID = ConsumableGoldPrice(recipeID)
-  local costSilver, missS, qty = MatsCostAt(recipeID, 2)
-  local costGold, missG = MatsCostAt(recipeID, 3)
+  local costSilver, missS, qty = MatsCostAt(recipeID, TIER_SILVER)
+  local costGold, missG = MatsCostAt(recipeID, TIER_GOLD)
   qty = qty or 1
-  local icon = QualityIcon(3) or ""
+  local icon = QualityIcon(goldID and ReagentQuality(goldID) or nil) or ""
   local qtyTag = qty > 1 and (" x" .. qty .. " " .. L["per craft"]) or ""
   if price then
     tooltip:AddDoubleLine(L["Sale (gold quality) in AH"] .. " " .. icon .. qtyTag, Money(price * qty), 1, 0.82, 0, 1, 1, 1)
@@ -754,13 +759,14 @@ local function TopRows(ilvl)
   for _, id in ipairs(KnownRecipes()) do
     if IsConsumableRecipe(id) then
       -- Consumibles: venta a calidad oro, coste con reagentes oro
-      local price = ConsumableGoldPrice(id)
-      local cost, missing, qty = MatsCostAt(id, 3)
+      local price, goldID = ConsumableGoldPrice(id)
+      local cost, missing, qty = MatsCostAt(id, TIER_GOLD)
       if cost and cost > 0 and missing == 0 then
         qty = qty or 1
         local total = price and price * qty or nil
+        local icon = QualityIcon(goldID and ReagentQuality(goldID) or nil) or ""
         table.insert(rows, { recipeID = id, consumable = true,
-                             name = (QualityIcon(3) or "") .. " " .. C_TradeSkillUI.GetRecipeInfo(id).name .. (qty > 1 and (" x" .. qty) or ""),
+                             name = icon .. " " .. C_TradeSkillUI.GetRecipeInfo(id).name .. (qty > 1 and (" x" .. qty) or ""),
                              price = total, cost = cost, profit = total and (total * AH_CUT - cost) or nil })
       end
     else
@@ -807,7 +813,7 @@ ShowTop = function()
       row:SetScript("OnClick", function(b) if b.recipeID then C_TradeSkillUI.OpenRecipe(b.recipeID) end end)
       row:SetScript("OnEnter", function(b)
         if not (b.consumable and b.recipeID) then return end
-        local cs, ms = MatsCostAt(b.recipeID, 2)
+        local cs, ms = MatsCostAt(b.recipeID, TIER_SILVER)
         GameTooltip:SetOwner(b, "ANCHOR_RIGHT")
         GameTooltip:SetText(b.rowName or "", 1, 1, 1)
         GameTooltip:AddDoubleLine(L["Reagents silver (needs Concentration)"], cs and Money(cs) or "?", 1, 0.82, 0, 1, 1, 1)
