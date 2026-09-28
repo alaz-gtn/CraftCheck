@@ -1165,8 +1165,11 @@ local function StartLootWatch(o)
         local id = tonumber(r.link:match("item:(%d+)"))
         if id then skip[id] = true end
     end
-    lootWatch = { deadline = GetTime() + 4, skip = skip, items = {}, order = {} }
-    C_Timer.After(4.2, function()
+    lootWatch = { deadline = GetTime() + 15, skip = skip, items = {}, order = {} }
+end
+
+local function FinishLootWatch()
+    C_Timer.After(3, function()
         local w = lootWatch
         lootWatch = nil
         if not w or #w.order == 0 then return end
@@ -1226,7 +1229,6 @@ local function RecordFulfilledOrder(orderID)
     while #c.orders.log > 50 do table.remove(c.orders.log) end
     local _, total = ns.OrderTotal(c.orders)
     print(string.format(L.ORDERS_RECORDED, L["ORDERS_" .. o.otype:upper()] or o.otype, ns.MoneyGold(earned), ns.MoneyGold(total)))
-    StartLootWatch(o)
     if ns.OnOrderRecorded then ns.OnOrderRecorded() end
     if ns.UI_Refresh then ns.UI_Refresh() end
 end
@@ -1238,15 +1240,23 @@ function ns.HandleOrderEvent(event, arg1, arg2)
         local okResult = (arg1 == 0) or (Enum and Enum.CraftingOrderResult and arg1 == Enum.CraftingOrderResult.Ok)
         if okResult then
             RecordFulfilledOrder(arg2)
+            FinishLootWatch()
             if ns.OrderNavAfterFulfill then ns.OrderNavAfterFulfill() end
+        else
+            lootWatch = nil
         end
     end
 end
 
 if C_CraftingOrders and type(C_CraftingOrders.FulfillOrder) == "function" then
     -- Justo antes de completar la orden aún se puede leer la orden reclamada
-    hooksecurefunc(C_CraftingOrders, "FulfillOrder", function()
+    hooksecurefunc(C_CraftingOrders, "FulfillOrder", function(orderID)
         CacheClaimedOrder()
+        local o = orderID and claimedCache[orderID]
+        if not o then
+            for _, cached in pairs(claimedCache) do o = cached break end
+        end
+        if o then StartLootWatch(o) end
         if ns.OrderNavCaptureNext then ns.OrderNavCaptureNext() end
     end)
 end
