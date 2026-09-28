@@ -48,8 +48,8 @@ if isES then
         ORDERS_NONE    = "ninguna todavía",
         ORDERS_GROUP   = "Total del grupo de reinos",
         ORDERS_UNIT    = "órdenes",
-        REWARD_GOLD    = "|cff33ff99CraftCheck|r: ¡Enhorabuena! Has conseguido |cffffd100%s|r extra gracias a %s",
-        REWARD_NOPRICE = "|cff33ff99CraftCheck|r: ¡Enhorabuena! Recompensa extra: %s",
+        REWARD_GOLD    = "|cff33ff99CraftCheck|r: ¡Enhorabuena! Has conseguido |cffffd100%s|r extra en materiales devueltos: %s",
+        REWARD_NOPRICE = "|cff33ff99CraftCheck|r: ¡Enhorabuena! Materiales devueltos: %s",
         REWARDS_TOTAL  = "recompensas",
         LOOT_GOLD      = "|cff33ff99CraftCheck|r: además has recuperado |cffffd100%s|r en materiales: %s",
         LOOT_NOPRICE   = "|cff33ff99CraftCheck|r: además has recuperado materiales: %s",
@@ -111,8 +111,8 @@ else
         ORDERS_NONE    = "none yet",
         ORDERS_GROUP   = "Realm group total",
         ORDERS_UNIT    = "orders",
-        REWARD_GOLD    = "|cff33ff99CraftCheck|r: Congratulations! You earned an extra |cffffd100%s|r thanks to %s",
-        REWARD_NOPRICE = "|cff33ff99CraftCheck|r: Congratulations! Extra reward: %s",
+        REWARD_GOLD    = "|cff33ff99CraftCheck|r: Congratulations! You got an extra |cffffd100%s|r in returned materials: %s",
+        REWARD_NOPRICE = "|cff33ff99CraftCheck|r: Congratulations! Returned materials: %s",
         REWARDS_TOTAL  = "rewards",
         LOOT_GOLD      = "|cff33ff99CraftCheck|r: you also got back |cffffd100%s|r in materials: %s",
         LOOT_NOPRICE   = "|cff33ff99CraftCheck|r: you also got back materials: %s",
@@ -1102,23 +1102,6 @@ local function RewardValue(link, count)
     return price * count
 end
 
-local function AnnounceRewards(o)
-    if not o.rewards or #o.rewards == 0 then return 0 end
-    local parts, total, priced = {}, 0, false
-    for _, r in ipairs(o.rewards) do
-        local txt = r.link .. (r.count > 1 and (" x" .. r.count) or "")
-        parts[#parts + 1] = txt
-        local val = RewardValue(r.link, r.count)
-        if val then total = total + val; priced = true end
-    end
-    local list = table.concat(parts, ", ")
-    if priced then
-        print(string.format(L.REWARD_GOLD, GetMoneyString(math.floor(total), true), list))
-    else
-        print(string.format(L.REWARD_NOPRICE, list))
-    end
-    return total
-end
 
 function ns.MoneyGold(copper)
     local gold = math.floor((copper or 0) / 10000)
@@ -1196,14 +1179,14 @@ local function StartLootWatch(o)
         end
         local list = table.concat(parts, ", ")
         if priced then
-            print(string.format(L.LOOT_GOLD, GetMoneyString(math.floor(total), true), list))
+            print(string.format(L.REWARD_GOLD, GetMoneyString(math.floor(total), true), list))
             local c = ns.playerKey and ns.db.chars[ns.playerKey]
             if c and c.orders then
                 c.orders.rewards = (c.orders.rewards or 0) + total
                 if ns.OnOrderRecorded then ns.OnOrderRecorded() end
             end
         else
-            print(string.format(L.LOOT_NOPRICE, list))
+            print(string.format(L.REWARD_NOPRICE, list))
         end
     end)
 end
@@ -1243,8 +1226,6 @@ local function RecordFulfilledOrder(orderID)
     while #c.orders.log > 50 do table.remove(c.orders.log) end
     local _, total = ns.OrderTotal(c.orders)
     print(string.format(L.ORDERS_RECORDED, L["ORDERS_" .. o.otype:upper()] or o.otype, ns.MoneyGold(earned), ns.MoneyGold(total)))
-    local rewardGold = AnnounceRewards(o)
-    if rewardGold > 0 then c.orders.rewards = (c.orders.rewards or 0) + rewardGold end
     StartLootWatch(o)
     if ns.OnOrderRecorded then ns.OnOrderRecorded() end
     if ns.UI_Refresh then ns.UI_Refresh() end

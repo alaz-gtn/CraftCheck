@@ -2,8 +2,7 @@
 
 ## v1.4.0
 
-- When a completed order (NPC orders) gives you extra reward items, a message tells you what you got and its Auction House value; reward value is also accumulated in the order stats.
-- Materials you get back right after completing an order (returned reagents, resourcefulness) are announced too, with their Auction House value.
+- Materials you get back when completing an order (returned reagents, resourcefulness) are announced with their Auction House value, and that value is added to the order stats.
 - After completing an order, the next one in the list opens automatically instead of going back to the list (`/cc autonext` toggles it).
 - Crafting orders view: under Your Cut, the cost of the reagents you must provide (customer-supplied ones excluded) and the net result (your cut minus that cost). Uses your allocated reagents when present, otherwise the cheapest quality.
 - Crafting orders view: Previous / Next buttons next to Back move through the order list without going back.

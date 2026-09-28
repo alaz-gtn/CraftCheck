@@ -36,7 +36,7 @@ In the crafting orders view, under Your Cut: the cost of the reagents **you** mu
 In the crafting orders view, **Previous** / **Next** buttons next to Back move through the order list without going back,. After completing an order the next one opens automatically (`/cc autonext` toggles it).
 
 ### Crafting order earnings
-Extra reward items from NPC orders are announced with their Auction House value when the order completes.
+Materials you get back when completing an order are announced with their Auction House value.
 Every fulfilled crafting order is counted per character: personal, public, guild and NPC orders and the gold earned in tips. Shown in the profession side panel (with a total for the whole realm group), in the character list and with `/cc orders`.
 
 ### Localized
