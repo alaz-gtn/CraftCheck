@@ -51,6 +51,8 @@ if isES then
         REWARD_GOLD    = "|cff33ff99CraftCheck|r: ¡Enhorabuena! Has conseguido |cffffd100%s|r extra gracias a %s",
         REWARD_NOPRICE = "|cff33ff99CraftCheck|r: ¡Enhorabuena! Recompensa extra: %s",
         REWARDS_TOTAL  = "recompensas",
+        LOOT_GOLD      = "|cff33ff99CraftCheck|r: además has recuperado |cffffd100%s|r en materiales: %s",
+        LOOT_NOPRICE   = "|cff33ff99CraftCheck|r: además has recuperado materiales: %s",
         ORDER_NEXT     = "Siguiente",
         ORDER_PREV     = "Anterior",
         ORDER_NAV_TIP  = "Pasar a la siguiente orden de la lista sin volver atrás",
@@ -112,6 +114,8 @@ else
         REWARD_GOLD    = "|cff33ff99CraftCheck|r: Congratulations! You earned an extra |cffffd100%s|r thanks to %s",
         REWARD_NOPRICE = "|cff33ff99CraftCheck|r: Congratulations! Extra reward: %s",
         REWARDS_TOTAL  = "rewards",
+        LOOT_GOLD      = "|cff33ff99CraftCheck|r: you also got back |cffffd100%s|r in materials: %s",
+        LOOT_NOPRICE   = "|cff33ff99CraftCheck|r: you also got back materials: %s",
         ORDER_NEXT     = "Next",
         ORDER_PREV     = "Previous",
         ORDER_NAV_TIP  = "Go to the next order in the list without going back",
@@ -1158,6 +1162,61 @@ function ns.FormatOrderStats(orders)
     return table.concat(parts, ", ")
 end
 
+-- Materiales que aparecen en el chat de botín justo después de completar una orden
+-- (reagentes devueltos, ingenio, etc.). Se recogen durante unos segundos y se anuncian juntos.
+local lootWatch  -- { until = GetTime, skip = {itemID=true}, items = {itemID -> {link,count}} }
+
+local function StartLootWatch(o)
+    local skip = {}
+    if o.itemID then skip[o.itemID] = true end
+    for _, r in ipairs(o.rewards or {}) do
+        local id = tonumber(r.link:match("item:(%d+)"))
+        if id then skip[id] = true end
+    end
+    lootWatch = { deadline = GetTime() + 4, skip = skip, items = {}, order = {} }
+    C_Timer.After(4.2, function()
+        local w = lootWatch
+        lootWatch = nil
+        if not w or #w.order == 0 then return end
+        local parts, total, priced = {}, 0, false
+        for _, id in ipairs(w.order) do
+            local e = w.items[id]
+            parts[#parts + 1] = e.link .. (e.count > 1 and (" x" .. e.count) or "")
+            local val = RewardValue(e.link, e.count)
+            if val then total = total + val; priced = true end
+        end
+        local list = table.concat(parts, ", ")
+        if priced then
+            print(string.format(L.LOOT_GOLD, GetMoneyString(math.floor(total), true), list))
+            local c = ns.playerKey and ns.db.chars[ns.playerKey]
+            if c and c.orders then
+                c.orders.rewards = (c.orders.rewards or 0) + total
+                if ns.OnOrderRecorded then ns.OnOrderRecorded() end
+            end
+        else
+            print(string.format(L.LOOT_NOPRICE, list))
+        end
+    end)
+end
+
+function ns.OnLootMessage(msg)
+    local w = lootWatch
+    if not w or IsSecret(msg) or type(msg) ~= "string" then return end
+    if GetTime() > w.deadline then return end
+    local link = msg:match("(|c%x+|Hitem:[^|]+|h%[[^%]]*%]|h|r)")
+    if not link then return end
+    local id = tonumber(link:match("item:(%d+)"))
+    if not id or w.skip[id] then return end
+    local count = tonumber(msg:match("|h|r%s*x(%d+)")) or 1
+    local e = w.items[id]
+    if e then
+        e.count = e.count + count
+    else
+        w.items[id] = { link = link, count = count }
+        w.order[#w.order + 1] = id
+    end
+end
+
 local function RecordFulfilledOrder(orderID)
     local o = orderID and claimedCache[orderID]
     if not o then return end
@@ -1177,6 +1236,7 @@ local function RecordFulfilledOrder(orderID)
     print(string.format(L.ORDERS_RECORDED, L["ORDERS_" .. o.otype:upper()] or o.otype, ns.MoneyGold(earned), ns.MoneyGold(total)))
     local rewardGold = AnnounceRewards(o)
     if rewardGold > 0 then c.orders.rewards = (c.orders.rewards or 0) + rewardGold end
+    StartLootWatch(o)
     if ns.OnOrderRecorded then ns.OnOrderRecorded() end
     if ns.UI_Refresh then ns.UI_Refresh() end
 end
@@ -1647,6 +1707,7 @@ frame:RegisterEvent("SKILL_LINES_CHANGED")
 frame:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
 frame:RegisterEvent("PLAYER_LOGOUT")
 frame:RegisterEvent("CHAT_MSG_WHISPER_INFORM")
+frame:RegisterEvent("CHAT_MSG_LOOT")
 for _, ev in ipairs({ "CRAFTINGORDERS_CLAIMED_ORDER_ADDED", "CRAFTINGORDERS_CLAIMED_ORDER_UPDATED", "CRAFTINGORDERS_FULFILL_ORDER_RESPONSE" }) do
     pcall(frame.RegisterEvent, frame, ev)
 end
@@ -1660,6 +1721,10 @@ for _, ev in ipairs(CHAT_EVENTS) do frame:RegisterEvent(ev) end
 frame:SetScript("OnEvent", function(self, event, arg1, arg2)
     if event:sub(1, 15) == "CRAFTINGORDERS_" then
         ns.HandleOrderEvent(event, arg1, arg2)
+        return
+    end
+    if event == "CHAT_MSG_LOOT" then
+        ns.OnLootMessage(arg1)
         return
     end
     if event == "CHAT_MSG_WHISPER_INFORM" then
