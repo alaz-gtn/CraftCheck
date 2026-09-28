@@ -1164,6 +1164,7 @@ end
 local lootWatch  -- { until = GetTime, skip = {itemID=true}, items = {itemID -> {link,count}} }
 
 local function StartLootWatch(o)
+    Debug("loot watch started for order " .. tostring(o.itemID))
     local skip = {}
     if o.itemID then skip[o.itemID] = true end
     for _, r in ipairs(o.rewards or {}) do
@@ -1203,7 +1204,9 @@ function ns.OnLootMessage(msg)
     local w = lootWatch
     if not w or IsSecret(msg) or type(msg) ~= "string" then return end
     if GetTime() > w.deadline then return end
-    local link = msg:match("(|c%x+|Hitem:[^|]+|h%[[^%]]*%]|h|r)")
+    -- Enlaces en 12.x pueden llevar color por nombre (|cnIQ2:) en vez de hexadecimal
+    local link = msg:match("(|c[^|]-|Hitem:[^|]-|h%[.-%]|h|r)")
+    Debug("loot during order: " .. (link and link:gsub("|", "||") or "no link") .. " in " .. msg:gsub("|", "||"))
     if not link then return end
     local id = tonumber(link:match("item:(%d+)"))
     if not id or w.skip[id] then return end
