@@ -172,6 +172,7 @@ local function ReagentPrice(itemID)
   end
   return MinPrice(Cache(itemID))
 end
+ns.ValueReagentPrice = ReagentPrice
 
 -- Precio del objeto fabricado a un ilvl concreto.
 -- Auctionator guarda el equipo (Armor/Weapon/Profession) como "g:itemID:ilvl" en su Full Scan.

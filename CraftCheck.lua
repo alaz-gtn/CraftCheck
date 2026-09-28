@@ -48,6 +48,9 @@ if isES then
         ORDERS_NONE    = "ninguna todavía",
         ORDERS_GROUP   = "Total del grupo de reinos",
         ORDERS_UNIT    = "órdenes",
+        REWARD_GOLD    = "|cff33ff99CraftCheck|r: ¡Enhorabuena! Has conseguido |cffffd100%s|r extra gracias a %s",
+        REWARD_NOPRICE = "|cff33ff99CraftCheck|r: ¡Enhorabuena! Recompensa extra: %s",
+        REWARDS_TOTAL  = "recompensas",
         ORDER_NEXT     = "Siguiente",
         ORDER_PREV     = "Anterior",
         ORDER_NAV_TIP  = "Pasar a la siguiente orden de la lista sin volver atrás",
@@ -106,6 +109,9 @@ else
         ORDERS_NONE    = "none yet",
         ORDERS_GROUP   = "Realm group total",
         ORDERS_UNIT    = "orders",
+        REWARD_GOLD    = "|cff33ff99CraftCheck|r: Congratulations! You earned an extra |cffffd100%s|r thanks to %s",
+        REWARD_NOPRICE = "|cff33ff99CraftCheck|r: Congratulations! Extra reward: %s",
+        REWARDS_TOTAL  = "rewards",
         ORDER_NEXT     = "Next",
         ORDER_PREV     = "Previous",
         ORDER_NAV_TIP  = "Go to the next order in the list without going back",
@@ -1061,7 +1067,44 @@ local function CacheClaimedOrder()
         otype = ORDER_TYPE_KEY[order.orderType or -1] or "other",
         customer = customer,
         itemID = order.itemID,
+        rewards = (function()
+            local list = {}
+            for _, r in ipairs(order.npcOrderRewards or {}) do
+                local link = r.itemLink
+                if not IsSecret(link) and type(link) == "string" and link ~= "" then
+                    list[#list + 1] = { link = link, count = tonumber(r.count) or 1 }
+                end
+            end
+            return list
+        end)(),
     }
+end
+
+-- Valor en la AH de una recompensa (enlace + cantidad); nil si no hay precio
+local function RewardValue(link, count)
+    local itemID = tonumber(link:match("item:(%d+)"))
+    if not itemID or not ns.ValueReagentPrice then return nil end
+    local price = ns.ValueReagentPrice(itemID)
+    if not price then return nil end
+    return price * count
+end
+
+local function AnnounceRewards(o)
+    if not o.rewards or #o.rewards == 0 then return 0 end
+    local parts, total, priced = {}, 0, false
+    for _, r in ipairs(o.rewards) do
+        local txt = r.link .. (r.count > 1 and (" x" .. r.count) or "")
+        parts[#parts + 1] = txt
+        local val = RewardValue(r.link, r.count)
+        if val then total = total + val; priced = true end
+    end
+    local list = table.concat(parts, ", ")
+    if priced then
+        print(string.format(L.REWARD_GOLD, GetMoneyString(math.floor(total), true), list))
+    else
+        print(string.format(L.REWARD_NOPRICE, list))
+    end
+    return total
 end
 
 function ns.MoneyGold(copper)
@@ -1108,6 +1151,9 @@ function ns.FormatOrderStats(orders)
             parts[#parts + 1] = string.format("%d %s (%s)", b.n, L["ORDERS_" .. key:upper()] or key, ns.MoneyGold(b.gold))
         end
     end
+    if (orders.rewards or 0) > 0 then
+        parts[#parts + 1] = string.format("%s %s", ns.MoneyGold(orders.rewards), L.REWARDS_TOTAL)
+    end
     if #parts == 0 then return nil end
     return table.concat(parts, ", ")
 end
@@ -1129,6 +1175,8 @@ local function RecordFulfilledOrder(orderID)
     while #c.orders.log > 50 do table.remove(c.orders.log) end
     local _, total = ns.OrderTotal(c.orders)
     print(string.format(L.ORDERS_RECORDED, L["ORDERS_" .. o.otype:upper()] or o.otype, ns.MoneyGold(earned), ns.MoneyGold(total)))
+    local rewardGold = AnnounceRewards(o)
+    if rewardGold > 0 then c.orders.rewards = (c.orders.rewards or 0) + rewardGold end
     if ns.OnOrderRecorded then ns.OnOrderRecorded() end
     if ns.UI_Refresh then ns.UI_Refresh() end
 end
