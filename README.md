@@ -33,7 +33,7 @@ Prices come from Auctionator's Full Scan if you have it (recommended). Without A
 In the crafting orders view, under Your Cut: the cost of the reagents **you** must provide (the customer's are excluded) and the net result (your cut minus that cost).
 
 ### Order navigation
-In the crafting orders view, **Previous** / **Next** buttons next to Back move through the order list without going back, with a position counter (3/9).
+In the crafting orders view, **Previous** / **Next** buttons next to Back move through the order list without going back, with a position counter (3/9). After completing an order the next one opens automatically (`/cc autonext` toggles it).
 
 ### Crafting order earnings
 Every fulfilled crafting order is counted per character: personal, public, guild and NPC orders and the gold earned in tips. Shown in the profession side panel (with a total for the whole realm group), in the character list and with `/cc orders`.
@@ -56,6 +56,7 @@ Open each profession once on each character (and each expansion tab). CraftCheck
 - `/cc message <text>` – whisper message (`{character}` = crafter Name-Realm, `{item}` = item link; Spanish `{personaje}` / `{objeto}` also work)
 - `/cc selfmessage <text>` – message used when the crafter is the character you are playing
 - `/cc orders` – tips earned from crafting orders per character (`/cc orders reset` clears the current character)
+- `/cc autonext` – jump to the next order after completing one (on by default)
 - `/cv top [n]` – rank your known recipes by profit in chat (profession window open)
 - `/cv ilvl N` – target item level for gear prices (default 232)
 - `/cv span N` – how far below the target ilvl a recipe's base item may be to count (default 30)

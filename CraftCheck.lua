@@ -29,7 +29,7 @@ if isES then
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: información en tooltip |cffff0000desactivada|r.",
         DELETED        = "|cff33ff99CraftCheck|r: personaje %s eliminado.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: no se encontró el personaje %s.",
-        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cc ordenes [reset] - propinas cobradas por órdenes de fabricación\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
+        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cc ordenes [reset] - propinas cobradas por órdenes de fabricación\n  /cc autonext - pasar a la siguiente orden al completar una\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
         LIST_HEADER    = "|cff33ff99CraftCheck|r personajes guardados:",
         UNKNOWN_REALM  = "Reino desconocido",
         CONC           = "Concentración",
@@ -51,6 +51,8 @@ if isES then
         ORDER_NEXT     = "Siguiente",
         ORDER_PREV     = "Anterior",
         ORDER_NAV_TIP  = "Pasar a la siguiente orden de la lista sin volver atrás",
+        AUTONEXT_ON    = "|cff33ff99CraftCheck|r: al completar una orden se pasa a la siguiente |cff00ff00activado|r.",
+        AUTONEXT_OFF   = "|cff33ff99CraftCheck|r: al completar una orden se pasa a la siguiente |cffff0000desactivado|r.",
         ORDERS_RECORDED = "|cff33ff99CraftCheck|r: orden %s completada, +%s (total %s).",
         ORDERS_RESET   = "|cff33ff99CraftCheck|r: contador de órdenes de %s reiniciado.",
         ORDERS_HEADER  = "|cff33ff99CraftCheck|r órdenes completadas por personaje:",
@@ -85,7 +87,7 @@ else
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: tooltip info |cffff0000disabled|r.",
         DELETED        = "|cff33ff99CraftCheck|r: character %s removed.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: character %s not found.",
-        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cc orders [reset] - tips earned from crafting orders\n  /cv - Value module: crafting profit vs the Auction House",
+        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cc orders [reset] - tips earned from crafting orders\n  /cc autonext - jump to the next order after completing one\n  /cv - Value module: crafting profit vs the Auction House",
         LIST_HEADER    = "|cff33ff99CraftCheck|r saved characters:",
         UNKNOWN_REALM  = "Unknown realm",
         CONC           = "Concentration",
@@ -107,6 +109,8 @@ else
         ORDER_NEXT     = "Next",
         ORDER_PREV     = "Previous",
         ORDER_NAV_TIP  = "Go to the next order in the list without going back",
+        AUTONEXT_ON    = "|cff33ff99CraftCheck|r: jump to the next order after completing one |cff00ff00enabled|r.",
+        AUTONEXT_OFF   = "|cff33ff99CraftCheck|r: jump to the next order after completing one |cffff0000disabled|r.",
         ORDERS_RECORDED = "|cff33ff99CraftCheck|r: %s order fulfilled, +%s (total %s).",
         ORDERS_RESET   = "|cff33ff99CraftCheck|r: order counter for %s reset.",
         ORDERS_HEADER  = "|cff33ff99CraftCheck|r orders fulfilled per character:",
@@ -178,6 +182,7 @@ local function InitDB()
     if s.tooltip == nil then s.tooltip = true end
     if s.onlyGroup == nil then s.onlyGroup = true end
     if s.gearOnly == nil then s.gearOnly = true end
+    if s.autoNext == nil then s.autoNext = true end
     s.minimap = s.minimap or {}
     if s.minimap.hide == nil then s.minimap.hide = false end
     if s.minimap.angle == nil then s.minimap.angle = 220 end
@@ -1133,13 +1138,19 @@ function ns.HandleOrderEvent(event, arg1, arg2)
         CacheClaimedOrder()
     elseif event == "CRAFTINGORDERS_FULFILL_ORDER_RESPONSE" then
         local okResult = (arg1 == 0) or (Enum and Enum.CraftingOrderResult and arg1 == Enum.CraftingOrderResult.Ok)
-        if okResult then RecordFulfilledOrder(arg2) end
+        if okResult then
+            RecordFulfilledOrder(arg2)
+            if ns.OrderNavAfterFulfill then ns.OrderNavAfterFulfill() end
+        end
     end
 end
 
 if C_CraftingOrders and type(C_CraftingOrders.FulfillOrder) == "function" then
     -- Justo antes de completar la orden aún se puede leer la orden reclamada
-    hooksecurefunc(C_CraftingOrders, "FulfillOrder", function() CacheClaimedOrder() end)
+    hooksecurefunc(C_CraftingOrders, "FulfillOrder", function()
+        CacheClaimedOrder()
+        if ns.OrderNavCaptureNext then ns.OrderNavCaptureNext() end
+    end)
 end
 
 -------------------------------------------------------------------------------
@@ -1198,6 +1209,29 @@ local function GoToOrder(delta)
     local ok, err = pcall(page.ViewOrder, page, target)
     if not ok then Debug("ViewOrder failed: " .. tostring(err)) end
     UpdateOrderNav()
+end
+
+-- Al completar una orden: recordar la siguiente y abrirla cuando el juego confirme
+local pendingNext
+function ns.OrderNavCaptureNext()
+    pendingNext = nil
+    if not ns.db or not ns.db.settings.autoNext then return end
+    local list = OrderListEntries()
+    local idx = CurrentOrderIndex(list)
+    if idx then pendingNext = list[idx + 1] end
+end
+
+function ns.OrderNavAfterFulfill()
+    local target = pendingNext
+    pendingNext = nil
+    if not target then return end
+    C_Timer.After(0.4, function()
+        local page = ProfessionsFrame and ProfessionsFrame.OrdersPage
+        if not page or not page.ViewOrder or not ProfessionsFrame:IsShown() then return end
+        local ok, err = pcall(page.ViewOrder, page, target)
+        if not ok then Debug("ViewOrder after fulfill failed: " .. tostring(err)) end
+        UpdateOrderNav()
+    end)
 end
 
 local function SetupOrderNav()
@@ -1516,6 +1550,9 @@ local function SlashHandler(msg)
             ns.db.settings.msgTemplateSelf = rest
             print(L.MSG_SET)
         end
+    elseif cmd == "autonext" then
+        ns.db.settings.autoNext = not ns.db.settings.autoNext
+        print(ns.db.settings.autoNext and L.AUTONEXT_ON or L.AUTONEXT_OFF)
     elseif cmd == "ordenes" or cmd == "orders" then
         if rest:lower() == "reset" then
             local c = ns.playerKey and ns.db.chars[ns.playerKey]
