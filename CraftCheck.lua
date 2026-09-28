@@ -1076,7 +1076,16 @@ local function CacheClaimedOrder()
             for _, r in ipairs(order.npcOrderRewards or {}) do
                 local link = r.itemLink
                 if not IsSecret(link) and type(link) == "string" and link ~= "" then
-                    list[#list + 1] = { link = link, count = tonumber(r.count) or 1 }
+                    local itemID = tonumber(link:match("item:(%d+)"))
+                    local name = link:match("%[(.-)%]")
+                    if (not name or name == "") and itemID and C_Item and C_Item.GetItemInfo then
+                        local _, fullLink = C_Item.GetItemInfo(itemID)
+                        link = fullLink
+                        name = link and link:match("%[(.-)%]")
+                    end
+                    if itemID and link and name and name ~= "" then
+                        list[#list + 1] = { link = link, count = tonumber(r.count) or 1 }
+                    end
                 end
             end
             return list
