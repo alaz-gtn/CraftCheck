@@ -1,77 +1,42 @@
 # <img src="https://raw.githubusercontent.com/alaz-gtn/CraftCheck/main/assets/CraftCheck_icon_40.png" width="40" align="absmiddle"> CraftCheck
 
-**Your crafting assistant for alts: see instantly which of your characters can craft an item, whisper the requester in one click, know whether the craft is worth it, and track what your crafting orders earn.**
+**Which of your alts can craft it, whisper the requester in one click, know if the craft is worth it, and work through crafting orders faster.**
 
-Do you have several crafters spread across realms? Someone links an item in Trade asking for a crafter, and you have to remember which alt learned that recipe, on which realm, and whether they have Concentration left. CraftCheck answers all of that in the item tooltip, and it also tells you whether a craft makes money before you spend the mats.
+## What it does
 
-## Features
+**Tooltip** – hover or click any item and see which of your characters can craft it (same connected-realm group only), with profession and remaining Concentration.
 
-### Who can craft it
-Hover or click any item link and the tooltip shows which of your characters can craft it: faction crest, class-colored name, realm, profession and remaining Concentration. Only characters on the same connected-realm group are listed, because that is where personal crafting orders work.
+**One-click whisper** – click a character in the tooltip: a whisper opens to the player who linked the item, message and max-quality link already typed. Just press Enter.
 
-### One-click whisper
-Click the item in chat, then click a character in the tooltip. CraftCheck opens a whisper to the player who linked the item with your message already typed, including the max-quality item link. Press Enter and you are done. Two customizable messages: one for when the crafter is another of your characters, one for when it is the character you are playing.
+**Profession browser** – `/cc` or the minimap button: all your characters, professions and recipes by realm group. Search, epic-gear filter, click to paste your message, Shift-click to link.
 
-### Profession browser
-A panel (minimap button or `/cc`) lists every character grouped by realm group, with their professions and recipes. Filter to epic gear only, search by item name, click an item to paste your message into the whisper you have open (for people who ask without linking), or Shift-click to link the item.
+**Crafting value** – on patterns, recipes and craftable items: difficulty, reagent cost, Auction House price and profit after the 5% cut. Gear at your target item level; potions, flasks and enchants at gold quality, with silver-reagent and gold-reagent costs per unit.
 
-### Concentration tracking
-Exact for the logged-in character, estimated with regeneration for your alts, so you know who can actually take the order.
+**Top ranking** – a **CraftCheck** button in the profession window ranks your recipes by profit. Hover a row for details, click to open the recipe.
 
-### Crafting value (profit vs Auction House)
-Hover any pattern, recipe or craftable item and see the recipe difficulty, the reagent cost and the Auction House price of the crafted item, with the profit after the 5% cut.
+**Crafting orders, faster**
+- **Previous / Next** buttons in the order view to move through the list without going back.
+- After completing an order, the **next one opens automatically**.
+- **Your mats / Net**: the cost of the reagents *you* have to provide (customer-supplied ones excluded) and what you actually make on the order.
+- Materials the order gives back to you are announced with their Auction House value.
+- The "you are using some of your own reagents" confirmation is skipped.
 
-- **Gear**: price at your target item level (default 232, `/cv ilvl N`), reagent cost at max quality.
-- **Potions, phials, flasks and enchants**: sale price of the gold-quality version, reagent cost with silver reagents (craft it gold with Concentration) and with gold reagents, and the profit with each. Everything per unit. Works when hovering any quality of the item, including in the Auction House.
-- Bind-on-pickup crafted gear (crafting-order items) shows difficulty and reagent cost only, since it cannot be sold.
+**Order earnings** – tips from personal, public, guild and NPC orders counted per character, plus a realm-group total and the value of returned materials.
 
-In the profession window, a **CraftCheck** button (Recipes tab) opens a side panel that ranks your known recipes by profit: gear at your target item level and consumables at gold quality, with silver-reagent cost, gold sale price and the resulting profit. Hover a row for the gold-reagent numbers; click it to open the recipe.
+Prices from Auctionator's Full Scan (recommended) or CraftCheck's own scan. English and Spanish.
 
-Prices come from Auctionator's Full Scan if you have it (recommended). Without Auctionator, CraftCheck can scan the Auction House itself.
+## Setup
 
-### Order cost
-In the crafting orders view, under Your Cut: the cost of the reagents **you** must provide (the customer's are excluded) and the net result (your cut minus that cost).
-
-### Order navigation
-In the crafting orders view, **Previous** / **Next** buttons next to Back move through the order list without going back,. After completing an order the next one opens automatically (`/cc autonext` toggles it), and the own-reagents confirmation popup is skipped (`/cc confirm` toggles it).
-
-### Crafting order earnings
-Materials you get back when completing an order are announced with their Auction House value.
-Every fulfilled crafting order is counted per character: personal, public, guild and NPC orders and the gold earned in tips. Shown in the profession side panel (with a total for the whole realm group), in the character list and with `/cc orders`.
-
-### Localized
-English and Spanish.
-
-## How it works
-
-Open each profession once on each character (and each expansion tab). CraftCheck records the learned recipes account-wide. Everything else is automatic.
+Open each profession once on each character. That's it.
 
 ## Commands
 
-- `/cc` – toggle the profession panel
-- `/cc tooltip` – enable or disable tooltip info
-- `/cc minimap` – show or hide the minimap button
-- `/cc list` – list saved characters and recipe counts
-- `/cc delete Name-Realm` – remove a character
-- `/cc scan` – force a rescan of the open profession
-- `/cc message <text>` – whisper message (`{character}` = crafter Name-Realm, `{item}` = item link; Spanish `{personaje}` / `{objeto}` also work)
-- `/cc selfmessage <text>` – message used when the crafter is the character you are playing
-- `/cc orders` – tips earned from crafting orders per character (`/cc orders reset` clears the current character)
-- `/cc autonext` – jump to the next order after completing one (on by default)
-- `/cc confirm` – show or skip the own-reagents confirmation when completing an order (skipped by default)
-- `/cv top [n]` – rank your known recipes by profit in chat (profession window open)
-- `/cv ilvl N` – target item level for gear prices (default 232)
-- `/cv span N` – how far below the target ilvl a recipe's base item may be to count (default 30)
-- `/cv full` / `/cv all` / `/cv scan` / `/cv reset` – own Auction House scanning (only without Auctionator)
+- `/cc` panel · `/cc tooltip` · `/cc minimap` · `/cc list` · `/cc delete Name-Realm` · `/cc scan`
+- `/cc message <text>` and `/cc selfmessage <text>` – whisper messages (`{character}`, `{item}`)
+- `/cc orders` – order earnings (`reset` clears the current character)
+- `/cc autonext` – open the next order after completing one (on by default)
+- `/cc confirm` – show or skip the own-reagents confirmation (skipped by default)
+- `/cv top [n]` · `/cv ilvl N` (gear item level, default 232) · `/cv span N`
+- `/cv full` / `/cv all` / `/cv scan` / `/cv reset` – own AH scanning (without Auctionator)
 
-## Support
-
-CraftCheck is free and always will be. If it saves you time, you can [buy me a coffee](https://ko-fi.com/gotenzlive).
-
-## Feedback
-
-Bug reports and suggestions are welcome on the [Issues](https://github.com/alaz-gtn/CraftCheck/issues) page or in the CurseForge comments.
-
-## License
-
-MIT
+Free, no ads. If it saves you time: [buy me a coffee](https://ko-fi.com/gotenzlive). Bugs and ideas: [GitHub Issues](https://github.com/alaz-gtn/CraftCheck/issues).
