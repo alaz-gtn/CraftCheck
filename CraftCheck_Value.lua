@@ -1279,16 +1279,16 @@ local function SetupOrderCost()
   local anchor = info and info.FinalTipMoneyDisplayFrame
   if not anchor then return end
   local holder = CreateFrame("Frame", "CraftCheckOrderCost", info)
-  local warning = info.OrderReagentsWarning
-  if warning then
-    holder:SetPoint("TOPLEFT", warning, "BOTTOMLEFT", 0, -2)
-    holder:SetPoint("TOPRIGHT", warning, "BOTTOMRIGHT", 0, -2)
+  local back = info.BackButton
+  if back then
+    holder:SetPoint("TOPLEFT", back, "BOTTOMLEFT", 0, -6)
+    holder:SetPoint("RIGHT", info, "RIGHT", -12, 0)
   else
     holder:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -4)
     holder:SetWidth(200)
   end
-  holder:SetHeight(16)
-  local text = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+  holder:SetHeight(20)
+  local text = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
   text:SetAllPoints()
   text:SetJustifyH("LEFT")
   holder:SetScript("OnEnter", function(self)

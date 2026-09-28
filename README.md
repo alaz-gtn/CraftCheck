@@ -33,7 +33,7 @@ Prices come from Auctionator's Full Scan if you have it (recommended). Without A
 In the crafting orders view, under Your Cut: the cost of the reagents **you** must provide (the customer's are excluded) and the net result (your cut minus that cost).
 
 ### Order navigation
-In the crafting orders view, **Previous** / **Next** buttons next to Back move through the order list without going back, with a position counter (3/9). After completing an order the next one opens automatically (`/cc autonext` toggles it).
+In the crafting orders view, **Previous** / **Next** buttons next to Back move through the order list without going back,. After completing an order the next one opens automatically (`/cc autonext` toggles it).
 
 ### Crafting order earnings
 Every fulfilled crafting order is counted per character: personal, public, guild and NPC orders and the gold earned in tips. Shown in the profession side panel (with a total for the whole realm group), in the character list and with `/cc orders`.

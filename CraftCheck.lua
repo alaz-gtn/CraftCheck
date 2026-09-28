@@ -1188,11 +1188,9 @@ local function UpdateOrderNav()
     local idx = CurrentOrderIndex(list)
     local n = #list
     if idx and n > 0 then
-        orderNav.counter:SetText(idx .. "/" .. n)
         orderNav.next:SetEnabled(idx < n)
         orderNav.prev:SetEnabled(idx > 1)
     else
-        orderNav.counter:SetText("")
         orderNav.next:SetEnabled(false)
         orderNav.prev:SetEnabled(false)
     end
@@ -1260,10 +1258,7 @@ local function SetupOrderNav()
     end)
     nxt:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
-    local counter = info:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    counter:SetPoint("LEFT", nxt, "RIGHT", 8, 0)
-
-    orderNav.prev, orderNav.next, orderNav.counter = prev, nxt, counter
+    orderNav.prev, orderNav.next = prev, nxt
 
     hooksecurefunc(view, "SetOrder", function() C_Timer.After(0, UpdateOrderNav) end)
     view:HookScript("OnShow", function() C_Timer.After(0, UpdateOrderNav) end)
