@@ -1209,7 +1209,19 @@ local function CrafterReagentCost(view)
   if not order or not order.spellID then return nil end
   local okS, schematic = pcall(C_TradeSkillUI.GetRecipeSchematic, order.spellID, order.isRecraft and true or false)
   if not okS or not schematic then return nil end
-  local provided = view.reagentSlotProvidedByCustomer or {}
+  -- Huecos que aporta el cliente: se leen de la propia orden (no de la interfaz)
+  local provided = {}
+  local crafterSrc = Enum.CraftingOrderReagentSource and Enum.CraftingOrderReagentSource.Crafter
+  for _, entry in ipairs(order.reagents or {}) do
+    local slotIndex = entry.slotIndex
+    local isCrafter = crafterSrc ~= nil and entry.source == crafterSrc
+    if slotIndex and not isCrafter then provided[slotIndex] = true end
+  end
+  if view.reagentSlotProvidedByCustomer then
+    for slotIndex, yes in pairs(view.reagentSlotProvidedByCustomer) do
+      if yes then provided[slotIndex] = true end
+    end
+  end
   local form = view.OrderDetails and view.OrderDetails.SchematicForm
   local tx = form and form.transaction
   local total, missing = 0, 0

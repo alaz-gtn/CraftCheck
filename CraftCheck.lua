@@ -1209,9 +1209,9 @@ local function SetupOrderNav()
     if not back then return end
 
     local prev = CreateFrame("Button", "CraftCheckOrderPrevButton", info, "UIPanelButtonTemplate")
-    prev:SetSize(26, back:GetHeight() > 0 and back:GetHeight() or 22)
+    prev:SetSize(90, back:GetHeight() > 0 and back:GetHeight() or 22)
     prev:SetPoint("LEFT", back, "RIGHT", 6, 0)
-    prev:SetText("<")
+    prev:SetText("< " .. L.ORDER_PREV)
     prev:SetScript("OnClick", function() GoToOrder(-1) end)
 
     local nxt = CreateFrame("Button", "CraftCheckOrderNextButton", info, "UIPanelButtonTemplate")
