@@ -29,6 +29,9 @@ In the profession window, a **CraftCheck** button (Recipes tab) opens a side pan
 
 Prices come from Auctionator's Full Scan if you have it (recommended). Without Auctionator, CraftCheck can scan the Auction House itself.
 
+### Order navigation
+In the crafting orders view, **Previous** / **Next** buttons next to Back move through the order list without going back, with a position counter (3/9).
+
 ### Crafting order earnings
 Every fulfilled crafting order is counted per character: personal, public, guild and NPC orders and the gold earned in tips. Shown in the profession side panel (with a total for the whole realm group), in the character list and with `/cc orders`.
 

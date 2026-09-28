@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.0
+
+- Crafting orders view: Previous / Next buttons next to Back move through the order list without going back, with a position counter (3/9).
+
 ## v1.3.1
 
 - Value info now also appears for recipes you have not learned while the profession window is open (with a "Not learned" note), so you can judge whether a recipe is worth learning. Outside the profession window it still shows only for learned recipes.

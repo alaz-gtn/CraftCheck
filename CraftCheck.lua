@@ -48,6 +48,9 @@ if isES then
         ORDERS_NONE    = "ninguna todavía",
         ORDERS_GROUP   = "Total del grupo de reinos",
         ORDERS_UNIT    = "órdenes",
+        ORDER_NEXT     = "Siguiente",
+        ORDER_PREV     = "Anterior",
+        ORDER_NAV_TIP  = "Pasar a la siguiente orden de la lista sin volver atrás",
         ORDERS_RECORDED = "|cff33ff99CraftCheck|r: orden %s completada, +%s (total %s).",
         ORDERS_RESET   = "|cff33ff99CraftCheck|r: contador de órdenes de %s reiniciado.",
         ORDERS_HEADER  = "|cff33ff99CraftCheck|r órdenes completadas por personaje:",
@@ -101,6 +104,9 @@ else
         ORDERS_NONE    = "none yet",
         ORDERS_GROUP   = "Realm group total",
         ORDERS_UNIT    = "orders",
+        ORDER_NEXT     = "Next",
+        ORDER_PREV     = "Previous",
+        ORDER_NAV_TIP  = "Go to the next order in the list without going back",
         ORDERS_RECORDED = "|cff33ff99CraftCheck|r: %s order fulfilled, +%s (total %s).",
         ORDERS_RESET   = "|cff33ff99CraftCheck|r: order counter for %s reset.",
         ORDERS_HEADER  = "|cff33ff99CraftCheck|r orders fulfilled per character:",
@@ -1137,6 +1143,101 @@ if C_CraftingOrders and type(C_CraftingOrders.FulfillOrder) == "function" then
 end
 
 -------------------------------------------------------------------------------
+-- Navegación entre órdenes de fabricación: botones Anterior/Siguiente y contador
+-------------------------------------------------------------------------------
+local orderNav = {}
+
+-- Lista de órdenes cargada en la pestaña de órdenes (la misma que muestra la lista)
+local function OrderListEntries()
+    local page = ProfessionsFrame and ProfessionsFrame.OrdersPage
+    local scrollBox = page and page.BrowseFrame and page.BrowseFrame.OrderList and page.BrowseFrame.OrderList.ScrollBox
+    local provider = scrollBox and scrollBox.GetDataProvider and scrollBox:GetDataProvider()
+    if not provider or not provider.EnumerateEntireRange then return {} end
+    local list = {}
+    for _, elementData in provider:EnumerateEntireRange() do
+        local option = elementData and elementData.option
+        if type(option) == "table" and option.orderID then list[#list + 1] = option end
+    end
+    return list
+end
+
+local function CurrentOrderIndex(list)
+    local view = ProfessionsFrame and ProfessionsFrame.OrdersPage and ProfessionsFrame.OrdersPage.OrderView
+    local current = view and view.order
+    if not current or not current.orderID then return nil end
+    for i, o in ipairs(list) do
+        if o.orderID == current.orderID then return i end
+    end
+    return nil
+end
+
+local function UpdateOrderNav()
+    if not orderNav.next then return end
+    local list = OrderListEntries()
+    local idx = CurrentOrderIndex(list)
+    local n = #list
+    if idx and n > 0 then
+        orderNav.counter:SetText(idx .. "/" .. n)
+        orderNav.next:SetEnabled(idx < n)
+        orderNav.prev:SetEnabled(idx > 1)
+    else
+        orderNav.counter:SetText("")
+        orderNav.next:SetEnabled(false)
+        orderNav.prev:SetEnabled(false)
+    end
+end
+
+local function GoToOrder(delta)
+    local page = ProfessionsFrame and ProfessionsFrame.OrdersPage
+    if not page or not page.ViewOrder then return end
+    local list = OrderListEntries()
+    local idx = CurrentOrderIndex(list)
+    if not idx then return end
+    local target = list[idx + delta]
+    if not target then return end
+    local ok, err = pcall(page.ViewOrder, page, target)
+    if not ok then Debug("ViewOrder failed: " .. tostring(err)) end
+    UpdateOrderNav()
+end
+
+local function SetupOrderNav()
+    if orderNav.next then return end
+    local page = ProfessionsFrame and ProfessionsFrame.OrdersPage
+    local view = page and page.OrderView
+    local info = view and view.OrderInfo
+    local back = info and info.BackButton
+    if not back then return end
+
+    local prev = CreateFrame("Button", "CraftCheckOrderPrevButton", info, "UIPanelButtonTemplate")
+    prev:SetSize(26, back:GetHeight() > 0 and back:GetHeight() or 22)
+    prev:SetPoint("LEFT", back, "RIGHT", 6, 0)
+    prev:SetText("<")
+    prev:SetScript("OnClick", function() GoToOrder(-1) end)
+
+    local nxt = CreateFrame("Button", "CraftCheckOrderNextButton", info, "UIPanelButtonTemplate")
+    nxt:SetSize(90, back:GetHeight() > 0 and back:GetHeight() or 22)
+    nxt:SetPoint("LEFT", prev, "RIGHT", 4, 0)
+    nxt:SetText(L.ORDER_NEXT .. " >")
+    nxt:SetScript("OnClick", function() GoToOrder(1) end)
+    nxt:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(L.ORDER_NAV_TIP, 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    nxt:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+    local counter = info:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    counter:SetPoint("LEFT", nxt, "RIGHT", 8, 0)
+
+    orderNav.prev, orderNav.next, orderNav.counter = prev, nxt, counter
+
+    hooksecurefunc(view, "SetOrder", function() C_Timer.After(0, UpdateOrderNav) end)
+    view:HookScript("OnShow", function() C_Timer.After(0, UpdateOrderNav) end)
+    UpdateOrderNav()
+end
+ns.SetupOrderNav = SetupOrderNav
+
+-------------------------------------------------------------------------------
 -- Detección de la línea de chat clicada (para saber a quién susurrar)
 -------------------------------------------------------------------------------
 ns.lastClicked = nil   -- { itemID=, sender=, t= } del último enlace de objeto clicado en el chat
@@ -1489,6 +1590,10 @@ frame:SetScript("OnEvent", function(self, event, arg1, arg2)
         OnChatMessage(arg1, arg2)
         return
     end
+    if event == "ADDON_LOADED" and arg1 == "Blizzard_Professions" then
+        SetupOrderNav()
+        return
+    end
     if event == "ADDON_LOADED" then
         if arg1 ~= ADDON_NAME then return end
         InitDB()
@@ -1507,6 +1612,7 @@ frame:SetScript("OnEvent", function(self, event, arg1, arg2)
         if c then PruneProfessions(c) end
         ns.RebuildIndex()
         if ns.UI_Init then ns.UI_Init() end
+        if C_AddOns and C_AddOns.IsAddOnLoaded and C_AddOns.IsAddOnLoaded("Blizzard_Professions") then SetupOrderNav() end
     elseif event == "CURRENCY_DISPLAY_UPDATE" or event == "PLAYER_LOGOUT" then
         ns.UpdateOwnConcentration()
     elseif event == "SKILL_LINES_CHANGED" then
