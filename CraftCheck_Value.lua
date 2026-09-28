@@ -39,6 +39,9 @@ if locale == "esES" or locale == "esMX" then
   L["Profit with gold mats"] = "Beneficio con mats oro"
   L["per craft"] = "por fabricación"
   L["per unit"] = "por unidad"
+  L["Your mats"] = "Tus mats"
+  L["Net"] = "Neto"
+  L["Reagents you must provide (not supplied by the customer), priced with the cheapest quality unless you already allocated them."] = "Reagentes que pones tú (no los aporta el cliente), al precio de la calidad más barata salvo que ya los tengas asignados."
   L["no price in AH"] = "sin precio en la AH"
   L["Binds when picked up: crafting orders only, not sold in the AH"] = "Se liga al recogerlo: solo órdenes de fabricación, no se vende en la AH"
   L["in AH"] = "en la AH"
@@ -1195,6 +1198,100 @@ local function ScanMerchant()
 end
 
 ---------------------------------------------------------------------------
+-- Vista de una orden: coste de los reagentes que pone el fabricante y neto
+---------------------------------------------------------------------------
+local orderCost = {}
+
+-- Coste de los reagentes básicos que NO aporta el cliente.
+-- Devuelve coste, nº de reagentes sin precio.
+local function CrafterReagentCost(view)
+  local order = view and view.order
+  if not order or not order.spellID then return nil end
+  local okS, schematic = pcall(C_TradeSkillUI.GetRecipeSchematic, order.spellID, order.isRecraft and true or false)
+  if not okS or not schematic then return nil end
+  local provided = view.reagentSlotProvidedByCustomer or {}
+  local form = view.OrderDetails and view.OrderDetails.SchematicForm
+  local tx = form and form.transaction
+  local total, missing = 0, 0
+  for _, slot in ipairs(schematic.reagentSlotSchematics or {}) do
+    if slot.reagentType == Enum.CraftingReagentType.Basic and slot.required and not provided[slot.slotIndex] then
+      local need = slot.quantityRequired or 0
+      -- Lo que ya tienes asignado en el formulario cuenta a su precio real
+      if tx and tx.GetAllocations then
+        local okA, allocs = pcall(tx.GetAllocations, tx, slot.slotIndex)
+        if okA and allocs and allocs.EnumerateAllocations then
+          for _, alloc in allocs:EnumerateAllocations() do
+            local reagent = alloc.GetReagent and alloc:GetReagent()
+            local qty = alloc.GetQuantity and alloc:GetQuantity() or 0
+            local itemID = reagent and reagent.itemID
+            if itemID and qty > 0 then
+              local price = ReagentPrice(itemID)
+              if price then total = total + price * qty else missing = missing + 1 end
+              need = need - qty
+            end
+          end
+        end
+      end
+      -- El resto, a la calidad más barata
+      if need > 0 then
+        local best
+        for _, r in ipairs(slot.reagents or {}) do
+          local price = ReagentPrice(r.itemID)
+          if price and (not best or price < best) then best = price end
+        end
+        if best then total = total + best * need else missing = missing + 1 end
+      end
+    end
+  end
+  return total, missing
+end
+
+local function UpdateOrderCost()
+  local view = ProfessionsFrame and ProfessionsFrame.OrdersPage and ProfessionsFrame.OrdersPage.OrderView
+  if not orderCost.text or not view or not view:IsShown() then return end
+  local order = view.order
+  local cost, missing = CrafterReagentCost(view)
+  if not order or not cost then orderCost.text:SetText("") return end
+  local cut = (order.tipAmount or 0) - (order.consortiumCut or 0)
+  local net = cut - cost
+  local color = net >= 0 and "|cff40ff40" or "|cffff4040"
+  local warn = missing > 0 and (" |cffff4040(" .. missing .. " " .. L["missing"] .. ")|r") or ""
+  orderCost.text:SetText("|cffffd100" .. L["Your mats"] .. ":|r " .. MoneyGS(cost) .. warn
+    .. "   |cffffd100" .. L["Net"] .. ":|r " .. color .. MoneyGS(net) .. "|r")
+end
+
+local function SetupOrderCost()
+  if orderCost.text then return end
+  local view = ProfessionsFrame and ProfessionsFrame.OrdersPage and ProfessionsFrame.OrdersPage.OrderView
+  local info = view and view.OrderInfo
+  local anchor = info and info.FinalTipMoneyDisplayFrame
+  if not anchor then return end
+  local holder = CreateFrame("Frame", "CraftCheckOrderCost", info)
+  holder:SetPoint("TOPLEFT", info, "LEFT", 12, 0)
+  holder:SetPoint("TOP", anchor, "BOTTOM", 0, -2)
+  holder:SetPoint("RIGHT", info, "RIGHT", -12, 0)
+  holder:SetHeight(16)
+  local text = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+  text:SetAllPoints()
+  text:SetJustifyH("RIGHT")
+  holder:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(TAG, 1, 0.82, 0)
+    GameTooltip:AddLine(L["Reagents you must provide (not supplied by the customer), priced with the cheapest quality unless you already allocated them."], 1, 1, 1, true)
+    GameTooltip:Show()
+  end)
+  holder:SetScript("OnLeave", function() GameTooltip:Hide() end)
+  orderCost.text = text
+
+  hooksecurefunc(view, "SetOrder", function() C_Timer.After(0.2, UpdateOrderCost) end)
+  view:HookScript("OnShow", function() C_Timer.After(0.2, UpdateOrderCost) end)
+  local form = view.OrderDetails and view.OrderDetails.SchematicForm
+  if form and form.RegisterCallback and ProfessionsRecipeSchematicFormMixin and ProfessionsRecipeSchematicFormMixin.Event then
+    pcall(form.RegisterCallback, form, ProfessionsRecipeSchematicFormMixin.Event.AllocationsModified, function() C_Timer.After(0, UpdateOrderCost) end, orderCost)
+  end
+end
+
+---------------------------------------------------------------------------
 -- Eventos
 ---------------------------------------------------------------------------
 local okTT, errTT = pcall(TooltipDataProcessor.AddTooltipPostCall, Enum.TooltipDataType.Item, OnItemTooltip)
@@ -1215,6 +1312,7 @@ local function OnEvent(_, event, arg1)
     if hooked then return end
     hooked = true
     BuildWindow()
+    pcall(SetupOrderCost)
     hooksecurefunc(ProfessionsFrame.CraftingPage.SchematicForm, "Init", function(_, recipeInfo)
       currentRecipeID = recipeInfo and recipeInfo.recipeID
       if currentRecipeID and AHOpen() then EnqueueRecipe(currentRecipeID, false); RunQueue() end

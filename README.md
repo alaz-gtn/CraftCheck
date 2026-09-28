@@ -29,6 +29,9 @@ In the profession window, a **CraftCheck** button (Recipes tab) opens a side pan
 
 Prices come from Auctionator's Full Scan if you have it (recommended). Without Auctionator, CraftCheck can scan the Auction House itself.
 
+### Order cost
+In the crafting orders view, under Your Cut: the cost of the reagents **you** must provide (the customer's are excluded) and the net result (your cut minus that cost).
+
 ### Order navigation
 In the crafting orders view, **Previous** / **Next** buttons next to Back move through the order list without going back, with a position counter (3/9).
 

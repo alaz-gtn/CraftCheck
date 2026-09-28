@@ -2,6 +2,7 @@
 
 ## v1.4.0
 
+- Crafting orders view: under Your Cut, the cost of the reagents you must provide (customer-supplied ones excluded) and the net result (your cut minus that cost). Uses your allocated reagents when present, otherwise the cheapest quality.
 - Crafting orders view: Previous / Next buttons next to Back move through the order list without going back, with a position counter (3/9).
 
 ## v1.3.1
