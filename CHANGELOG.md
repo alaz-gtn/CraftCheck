@@ -2,6 +2,7 @@
 
 ## v1.4.0
 
+- The "you are about to fill an order with some of your own reagents" confirmation is skipped when completing an order (`/cc confirm` brings it back).
 - Materials you get back when completing an order (returned reagents, resourcefulness) are announced with their Auction House value, and that value is added to the order stats.
 - After completing an order, the next one in the list opens automatically instead of going back to the list (`/cc autonext` toggles it).
 - Crafting orders view: under Your Cut, the cost of the reagents you must provide (customer-supplied ones excluded) and the net result (your cut minus that cost). Uses your allocated reagents when present, otherwise the cheapest quality.

@@ -29,7 +29,7 @@ if isES then
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: información en tooltip |cffff0000desactivada|r.",
         DELETED        = "|cff33ff99CraftCheck|r: personaje %s eliminado.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: no se encontró el personaje %s.",
-        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cc ordenes [reset] - propinas cobradas por órdenes de fabricación\n  /cc autonext - pasar a la siguiente orden al completar una\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
+        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cc ordenes [reset] - propinas cobradas por órdenes de fabricación\n  /cc autonext - pasar a la siguiente orden al completar una\n  /cc confirmar - mostrar/omitir la confirmación de usar tus propios reagentes\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
         LIST_HEADER    = "|cff33ff99CraftCheck|r personajes guardados:",
         UNKNOWN_REALM  = "Reino desconocido",
         CONC           = "Concentración",
@@ -57,6 +57,8 @@ if isES then
         ORDER_PREV     = "Anterior",
         ORDER_NAV_TIP  = "Pasar a la siguiente orden de la lista sin volver atrás",
         AUTONEXT_ON    = "|cff33ff99CraftCheck|r: al completar una orden se pasa a la siguiente |cff00ff00activado|r.",
+        SKIPCONFIRM_ON = "|cff33ff99CraftCheck|r: la confirmación de \"usar tus propios reagentes\" se omite (|cff00ff00activado|r).",
+        SKIPCONFIRM_OFF = "|cff33ff99CraftCheck|r: la confirmación de \"usar tus propios reagentes\" vuelve a mostrarse (|cffff0000desactivado|r).",
         AUTONEXT_OFF   = "|cff33ff99CraftCheck|r: al completar una orden se pasa a la siguiente |cffff0000desactivado|r.",
         ORDERS_RECORDED = "|cff33ff99CraftCheck|r: orden %s completada, +%s (total %s).",
         ORDERS_RESET   = "|cff33ff99CraftCheck|r: contador de órdenes de %s reiniciado.",
@@ -92,7 +94,7 @@ else
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: tooltip info |cffff0000disabled|r.",
         DELETED        = "|cff33ff99CraftCheck|r: character %s removed.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: character %s not found.",
-        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cc orders [reset] - tips earned from crafting orders\n  /cc autonext - jump to the next order after completing one\n  /cv - Value module: crafting profit vs the Auction House",
+        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cc orders [reset] - tips earned from crafting orders\n  /cc autonext - jump to the next order after completing one\n  /cc confirm - show/skip the own-reagents confirmation when completing an order\n  /cv - Value module: crafting profit vs the Auction House",
         LIST_HEADER    = "|cff33ff99CraftCheck|r saved characters:",
         UNKNOWN_REALM  = "Unknown realm",
         CONC           = "Concentration",
@@ -120,6 +122,8 @@ else
         ORDER_PREV     = "Previous",
         ORDER_NAV_TIP  = "Go to the next order in the list without going back",
         AUTONEXT_ON    = "|cff33ff99CraftCheck|r: jump to the next order after completing one |cff00ff00enabled|r.",
+        SKIPCONFIRM_ON = "|cff33ff99CraftCheck|r: the \"own reagents\" confirmation is skipped (|cff00ff00enabled|r).",
+        SKIPCONFIRM_OFF = "|cff33ff99CraftCheck|r: the \"own reagents\" confirmation is shown again (|cffff0000disabled|r).",
         AUTONEXT_OFF   = "|cff33ff99CraftCheck|r: jump to the next order after completing one |cffff0000disabled|r.",
         ORDERS_RECORDED = "|cff33ff99CraftCheck|r: %s order fulfilled, +%s (total %s).",
         ORDERS_RESET   = "|cff33ff99CraftCheck|r: order counter for %s reset.",
@@ -193,6 +197,7 @@ local function InitDB()
     if s.onlyGroup == nil then s.onlyGroup = true end
     if s.gearOnly == nil then s.gearOnly = true end
     if s.autoNext == nil then s.autoNext = true end
+    if s.skipOwnReagentsConfirm == nil then s.skipOwnReagentsConfirm = true end
     s.minimap = s.minimap or {}
     if s.minimap.hide == nil then s.minimap.hide = false end
     if s.minimap.angle == nil then s.minimap.angle = 220 end
@@ -1248,6 +1253,22 @@ function ns.HandleOrderEvent(event, arg1, arg2)
     end
 end
 
+-- Omitir la ventana "vas a completar una orden con tus propios reagentes, ¿seguro?"
+if type(StaticPopup_ShowCustomGenericConfirmation) == "function" and not ns.confirmHooked then
+    ns.confirmHooked = true
+    local orig = StaticPopup_ShowCustomGenericConfirmation
+    StaticPopup_ShowCustomGenericConfirmation = function(customData, ...)
+        if ns.db and ns.db.settings.skipOwnReagentsConfirm and type(customData) == "table"
+            and CRAFTING_ORDERS_OWN_REAGENTS_CONFIRMATION
+            and customData.text == CRAFTING_ORDERS_OWN_REAGENTS_CONFIRMATION
+            and type(customData.callback) == "function" then
+            customData.callback()
+            return
+        end
+        return orig(customData, ...)
+    end
+end
+
 if C_CraftingOrders and type(C_CraftingOrders.FulfillOrder) == "function" then
     -- Justo antes de completar la orden aún se puede leer la orden reclamada
     hooksecurefunc(C_CraftingOrders, "FulfillOrder", function(orderID)
@@ -1653,6 +1674,9 @@ local function SlashHandler(msg)
             ns.db.settings.msgTemplateSelf = rest
             print(L.MSG_SET)
         end
+    elseif cmd == "confirmar" or cmd == "confirm" then
+        ns.db.settings.skipOwnReagentsConfirm = not ns.db.settings.skipOwnReagentsConfirm
+        print(ns.db.settings.skipOwnReagentsConfirm and L.SKIPCONFIRM_ON or L.SKIPCONFIRM_OFF)
     elseif cmd == "autonext" then
         ns.db.settings.autoNext = not ns.db.settings.autoNext
         print(ns.db.settings.autoNext and L.AUTONEXT_ON or L.AUTONEXT_OFF)
