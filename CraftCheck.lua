@@ -1171,7 +1171,7 @@ local function StartLootWatch(o)
         local id = tonumber(r.link:match("item:(%d+)"))
         if id then skip[id] = true end
     end
-    lootWatch = { deadline = GetTime() + 15, skip = skip, items = {}, order = {} }
+    lootWatch = { deadline = GetTime() + 300, skip = skip, items = {}, order = {} }
 end
 
 local function FinishLootWatch()
@@ -1272,15 +1272,45 @@ if type(StaticPopup_ShowCustomGenericConfirmation) == "function" and not ns.conf
     end
 end
 
+-- El botín devuelto (ingenio, etc.) llega durante la fabricación, antes de completar la orden:
+-- la vigilancia empieza al iniciar la fabricación desde la vista de una orden
+local function ClaimedOrderCache()
+    CacheClaimedOrder()
+    for _, cached in pairs(claimedCache) do return cached end
+    return nil
+end
+
+local function OrderViewShown()
+    local view = ProfessionsFrame and ProfessionsFrame.OrdersPage and ProfessionsFrame.OrdersPage.OrderView
+    return view and view:IsShown()
+end
+
+if C_TradeSkillUI and type(C_TradeSkillUI.CraftRecipe) == "function" then
+    hooksecurefunc(C_TradeSkillUI, "CraftRecipe", function()
+        if not OrderViewShown() then return end
+        local o = ClaimedOrderCache()
+        if o then StartLootWatch(o) end
+    end)
+end
+if C_TradeSkillUI and type(C_TradeSkillUI.RecraftRecipe) == "function" then
+    hooksecurefunc(C_TradeSkillUI, "RecraftRecipe", function()
+        if not OrderViewShown() then return end
+        local o = ClaimedOrderCache()
+        if o then StartLootWatch(o) end
+    end)
+end
+
 if C_CraftingOrders and type(C_CraftingOrders.FulfillOrder) == "function" then
     -- Justo antes de completar la orden aún se puede leer la orden reclamada
     hooksecurefunc(C_CraftingOrders, "FulfillOrder", function(orderID)
         CacheClaimedOrder()
-        local o = orderID and claimedCache[orderID]
-        if not o then
-            for _, cached in pairs(claimedCache) do o = cached break end
+        if not lootWatch then
+            local o = orderID and claimedCache[orderID]
+            if not o then
+                for _, cached in pairs(claimedCache) do o = cached break end
+            end
+            if o then StartLootWatch(o) end
         end
-        if o then StartLootWatch(o) end
         if ns.OrderNavCaptureNext then ns.OrderNavCaptureNext() end
     end)
 end
