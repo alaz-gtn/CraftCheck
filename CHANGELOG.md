@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.2
+
+- Fix: returned materials (resourcefulness, etc.) arrive while the order is being crafted, before Complete Order; the addon now watches from the moment the craft starts, so the announcement works.
+
 ## v1.4.1
 
 - Fix: returned materials after completing an order were not detected because Midnight item links in the loot chat use named quality colors; the announcement now works.
