@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.1
+
+- Fix: returned materials after completing an order were not detected because Midnight item links in the loot chat use named quality colors; the announcement now works.
+
 ## v1.4.0
 
 - The "you are about to fill an order with some of your own reagents" confirmation is skipped when completing an order (`/cc confirm` brings it back).
