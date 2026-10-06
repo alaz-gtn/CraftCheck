@@ -58,7 +58,7 @@ end
 -------------------------------------------------------------------------------
 -- Constantes / utilidades
 -------------------------------------------------------------------------------
-local TAG = "|cff33ff99CraftCheck|r " .. L["Farm"]
+local TAG = "|cff33ff99Farm|r|cffffd100Check|r"
 local CATS = { "herb", "mine", "fish" }
 local CAT_LABEL = { herb = L["Herbalism"], mine = L["Mining"], fish = L["Fishing"] }
 local CAT_NODE = { herb = L["herbs"], mine = L["veins"], fish = L["casts"] }

@@ -21,7 +21,7 @@
 - Materials the order gives back to you are announced with their Auction House value.
 - The "you are using some of your own reagents" confirmation is skipped.
 
-**Farming sessions** – `/cc farm` (or Shift-click the minimap button): start, pause, resume and finish a gathering session. Everything from Herbalism and Mining nodes (Fishing optional) is counted with its Auction House value: total gold, gold per hour, per-profession breakdown, node counts and an item list. Auto-pauses when you stop gathering, survives a reload, and keeps a history of past sessions.
+**FarmCheck** (farming sessions) – `/cc farm` (or Shift-click the minimap button): start, pause, resume and finish a gathering session. Everything from Herbalism and Mining nodes (Fishing optional) is counted with its Auction House value: total gold, gold per hour, per-profession breakdown, node counts and an item list. Auto-pauses when you stop gathering, survives a reload, and keeps a history of past sessions.
 
 **Order earnings** – tips from personal, public, guild and NPC orders counted per character, plus a realm-group total and the value of returned materials.
 
