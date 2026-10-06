@@ -15,3 +15,4 @@
 CraftCheck.lua
 CraftCheck_UI.lua
 CraftCheck_Value.lua
+CraftCheck_Farm.lua

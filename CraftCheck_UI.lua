@@ -573,6 +573,8 @@ local function CreateMinimapButton()
         if button == "RightButton" then
             ns.db.settings.tooltip = not ns.db.settings.tooltip
             print(ns.db.settings.tooltip and L.TOOLTIP_ON or L.TOOLTIP_OFF)
+        elseif IsShiftKeyDown() and ns.FarmToggle then
+            ns.FarmToggle()
         else
             ns.UI_Toggle()
         end

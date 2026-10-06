@@ -24,12 +24,12 @@ if isES then
         NO_RESULTS     = "Ningún objeto coincide con la búsqueda.",
         HINT           = "Click en un objeto: pega el mensaje en el chat. Shift+click: enlaza solo el objeto.",
         MINIMAP_TIP1   = "|cff33ff99CraftCheck|r",
-        MINIMAP_TIP2   = "Click izquierdo: abrir/cerrar panel\nClick derecho: activar/desactivar tooltip\nArrastrar: mover el botón",
+        MINIMAP_TIP2   = "Click izquierdo: abrir/cerrar panel\nShift+click: ventana de farmeo\nClick derecho: activar/desactivar tooltip\nArrastrar: mover el botón",
         TOOLTIP_ON     = "|cff33ff99CraftCheck|r: información en tooltip |cff00ff00activada|r.",
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: información en tooltip |cffff0000desactivada|r.",
         DELETED        = "|cff33ff99CraftCheck|r: personaje %s eliminado.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: no se encontró el personaje %s.",
-        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cc ordenes [reset] - propinas cobradas por órdenes de fabricación\n  /cc autonext - pasar a la siguiente orden al completar una\n  /cc confirmar - mostrar/omitir la confirmación de usar tus propios reagentes\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
+        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cc ordenes [reset] - propinas cobradas por órdenes de fabricación\n  /cc autonext - pasar a la siguiente orden al completar una\n  /cc confirmar - mostrar/omitir la confirmación de usar tus propios reagentes\n  /cc farmeo - ventana de sesiones de recolección\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
         LIST_HEADER    = "|cff33ff99CraftCheck|r personajes guardados:",
         UNKNOWN_REALM  = "Reino desconocido",
         CONC           = "Concentración",
@@ -89,12 +89,12 @@ else
         NO_RESULTS     = "No item matches the search.",
         HINT           = "Click an item: paste the message into chat. Shift+click: link the item only.",
         MINIMAP_TIP1   = "|cff33ff99CraftCheck|r",
-        MINIMAP_TIP2   = "Left click: toggle panel\nRight click: toggle tooltip info\nDrag: move button",
+        MINIMAP_TIP2   = "Left click: toggle panel\nShift+click: farming window\nRight click: toggle tooltip info\nDrag: move button",
         TOOLTIP_ON     = "|cff33ff99CraftCheck|r: tooltip info |cff00ff00enabled|r.",
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: tooltip info |cffff0000disabled|r.",
         DELETED        = "|cff33ff99CraftCheck|r: character %s removed.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: character %s not found.",
-        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cc orders [reset] - tips earned from crafting orders\n  /cc autonext - jump to the next order after completing one\n  /cc confirm - show/skip the own-reagents confirmation when completing an order\n  /cv - Value module: crafting profit vs the Auction House",
+        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cc orders [reset] - tips earned from crafting orders\n  /cc autonext - jump to the next order after completing one\n  /cc confirm - show/skip the own-reagents confirmation when completing an order\n  /cc farm - gathering session window\n  /cv - Value module: crafting profit vs the Auction House",
         LIST_HEADER    = "|cff33ff99CraftCheck|r saved characters:",
         UNKNOWN_REALM  = "Unknown realm",
         CONC           = "Concentration",
@@ -1710,6 +1710,8 @@ local function SlashHandler(msg)
     elseif cmd == "confirmar" or cmd == "confirm" then
         ns.db.settings.skipOwnReagentsConfirm = not ns.db.settings.skipOwnReagentsConfirm
         print(ns.db.settings.skipOwnReagentsConfirm and L.SKIPCONFIRM_ON or L.SKIPCONFIRM_OFF)
+    elseif cmd == "farm" or cmd == "farmeo" then
+        if ns.FarmToggle then ns.FarmToggle() end
     elseif cmd == "autonext" then
         ns.db.settings.autoNext = not ns.db.settings.autoNext
         print(ns.db.settings.autoNext and L.AUTONEXT_ON or L.AUTONEXT_OFF)
