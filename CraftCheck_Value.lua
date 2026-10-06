@@ -779,7 +779,7 @@ end
 ---------------------------------------------------------------------------
 -- Ventana (visible con la profesion abierta)
 ---------------------------------------------------------------------------
-local ROW_H, BASE_H, MAX_ROWS_VISIBLE, WIN_W = 20, 136, 20, 660
+local ROW_H, BASE_H, MAX_ROWS_VISIBLE, WIN_W = 20, 154, 20, 660
 local COL_NAME, COL_MONEY = 250, 110
 
 -- ilvl que produce cada calidad (1..5) de una receta
@@ -963,16 +963,20 @@ local function BuildWindow()
   win.orders:SetPoint("TOPLEFT", 14, -72); win.orders:SetPoint("RIGHT", -14, 0); win.orders:SetJustifyH("LEFT")
   win.ordersGroup = win:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
   win.ordersGroup:SetPoint("TOPLEFT", 14, -90); win.ordersGroup:SetPoint("RIGHT", -14, 0); win.ordersGroup:SetJustifyH("LEFT")
+  -- Oro ganado hoy con las profesiones (toda la cuenta)
+  win.profit = win:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  win.profit:SetPoint("TOPLEFT", 14, -108); win.profit:SetPoint("RIGHT", -14, 0); win.profit:SetJustifyH("LEFT")
+  win.profit:SetWordWrap(false)
 
   -- Separador entre las órdenes y la lista
   win.separator = win:CreateTexture(nil, "ARTWORK")
   win.separator:SetColorTexture(0.55, 0.45, 0.25, 0.8)
   win.separator:SetHeight(1)
-  win.separator:SetPoint("TOPLEFT", 14, -112); win.separator:SetPoint("TOPRIGHT", -14, -112)
+  win.separator:SetPoint("TOPLEFT", 14, -130); win.separator:SetPoint("TOPRIGHT", -14, -130)
 
   -- Mensajes (solo cuando no hay filas o durante un escaneo)
   win.status = win:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-  win.status:SetPoint("TOPLEFT", 14, -122); win.status:SetPoint("RIGHT", -14, 0); win.status:SetJustifyH("LEFT")
+  win.status:SetPoint("TOPLEFT", 14, -140); win.status:SetPoint("RIGHT", -14, 0); win.status:SetJustifyH("LEFT")
   win.status:SetText(HasAuctionator() and L["Prices: Auctionator Full Scan. Press Top."] or L["With the AH open: Scan AH. Then: Top."])
   ns.OnOrderRecorded = function()
     if not win then return end
@@ -982,11 +986,15 @@ local function BuildWindow()
     local n, gold = ns.OrderTotalForGroup()
     win.ordersGroup:SetText("|cffffd100" .. (CL.ORDERS_GROUP or "Realm group total") .. ":|r "
       .. n .. " " .. (CL.ORDERS_UNIT or "orders") .. " (" .. ns.MoneyGold(gold) .. ")")
+    if win.profit and ns.LedgerDay and ns.LedgerSummary then
+      local tot, net = ns.LedgerDay()
+      win.profit:SetText(ns.LedgerSummary(tot, net))
+    end
   end
   ns.OnOrderRecorded()
 
   win.header = CreateFrame("Frame", nil, win)
-  win.header:SetPoint("TOPLEFT", 14, -120); win.header:SetPoint("RIGHT", -30, 0); win.header:SetHeight(ROW_H)
+  win.header:SetPoint("TOPLEFT", 14, -138); win.header:SetPoint("RIGHT", -30, 0); win.header:SetHeight(ROW_H)
   local function H(text, anchorTo, width, justify)
     local fsH = win.header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     if anchorTo then fsH:SetPoint("LEFT", anchorTo, "RIGHT", 4, 0) else fsH:SetPoint("LEFT", 2, 0) end
@@ -1000,7 +1008,7 @@ local function BuildWindow()
   win.header:Hide()
 
   win.scroll = CreateFrame("ScrollFrame", nil, win, "UIPanelScrollFrameTemplate")
-  win.scroll:SetPoint("TOPLEFT", 14, -142); win.scroll:SetPoint("RIGHT", -30, 0); win.scroll:SetHeight(1)
+  win.scroll:SetPoint("TOPLEFT", 14, -160); win.scroll:SetPoint("RIGHT", -30, 0); win.scroll:SetHeight(1)
   win.content = CreateFrame("Frame", nil, win.scroll)
   win.content:SetSize(WIN_W - 50, 1)
   win.scroll:SetScript("OnMouseWheel", function(self, delta)
@@ -1257,6 +1265,13 @@ local function CrafterReagentCost(view)
     end
   end
   return total, missing
+end
+
+ns.ValueCrafterReagentCost = function()
+  local view = ProfessionsFrame and ProfessionsFrame.OrdersPage and ProfessionsFrame.OrdersPage.OrderView
+  if not view then return nil end
+  local ok, cost = pcall(CrafterReagentCost, view)
+  return ok and cost or nil
 end
 
 local function UpdateOrderCost()

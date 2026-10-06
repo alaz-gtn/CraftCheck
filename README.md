@@ -23,6 +23,8 @@
 
 **FarmCheck** (farming sessions) – `/cc farm` (or Shift-click the minimap button): start, pause, resume and finish a gathering session. Everything from Herbalism and Mining nodes (Fishing optional) is counted with its Auction House value: total gold, gold per hour, per-profession breakdown, node counts and an item list. Auto-pauses when you stop gathering, survives a reload, and keeps a history of past sessions.
 
+**Professions gold today** – one account-wide number for the day: tips, returned materials, sellable order rewards and the contents of reward packages, minus the reagents you put in. Shown in the profession side panel, on the minimap button tooltip and with `/cc profit` (per character, plus the last 7 days).
+
 **Order earnings** – tips from personal, public, guild and NPC orders counted per character, plus a realm-group total and the value of returned materials.
 
 Prices from Auctionator's Full Scan (recommended) or CraftCheck's own scan. English and Spanish.
@@ -39,6 +41,7 @@ Open each profession once on each character. That's it.
 - `/cc autonext` – open the next order after completing one (on by default)
 - `/cc confirm` – show or skip the own-reagents confirmation (skipped by default)
 - `/cc farm` – gathering session window
+- `/cc profit` – gold earned today with professions, whole account
 - `/cv top [n]` · `/cv ilvl N` (gear item level, default 232) · `/cv span N`
 - `/cv full` / `/cv all` / `/cv scan` / `/cv reset` – own AH scanning (without Auctionator)
 

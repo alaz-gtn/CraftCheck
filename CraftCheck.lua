@@ -29,7 +29,7 @@ if isES then
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: información en tooltip |cffff0000desactivada|r.",
         DELETED        = "|cff33ff99CraftCheck|r: personaje %s eliminado.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: no se encontró el personaje %s.",
-        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cc ordenes [reset] - propinas cobradas por órdenes de fabricación\n  /cc autonext - pasar a la siguiente orden al completar una\n  /cc confirmar - mostrar/omitir la confirmación de usar tus propios reagentes\n  /cc farmeo - ventana de sesiones de recolección\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
+        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cc ordenes [reset] - propinas cobradas por órdenes de fabricación\n  /cc autonext - pasar a la siguiente orden al completar una\n  /cc confirmar - mostrar/omitir la confirmación de usar tus propios reagentes\n  /cc farmeo - ventana de sesiones de recolección\n  /cc ganancias - oro ganado hoy con las profesiones (toda la cuenta)\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
         LIST_HEADER    = "|cff33ff99CraftCheck|r personajes guardados:",
         UNKNOWN_REALM  = "Reino desconocido",
         CONC           = "Concentración",
@@ -51,6 +51,18 @@ if isES then
         REWARD_GOLD    = "|cff33ff99CraftCheck|r: ¡Enhorabuena! Has conseguido |cffffd100%s|r extra en materiales devueltos: %s",
         REWARD_NOPRICE = "|cff33ff99CraftCheck|r: ¡Enhorabuena! Materiales devueltos: %s",
         REWARDS_TOTAL  = "recompensas",
+        PROFIT_TODAY   = "Profesiones hoy",
+        PROFIT_TIPS    = "propinas",
+        PROFIT_RETURNED = "devuelto",
+        PROFIT_REWARDS = "recompensas",
+        PROFIT_BAGS    = "paquetes",
+        PROFIT_SPENT   = "gastado",
+        PROFIT_ORDERS  = "órdenes",
+        PROFIT_HEADER  = "|cff33ff99CraftCheck|r oro ganado hoy con las profesiones:",
+        PROFIT_DAYTOTAL = "Total del día",
+        PROFIT_LAST7   = "Últimos 7 días:",
+        PROFIT_NONE    = "nada todavía",
+        BAG_GOLD       = "|cff33ff99CraftCheck|r: paquete abierto, |cffffd100%s|r: %s",
         LOOT_GOLD      = "|cff33ff99CraftCheck|r: además has recuperado |cffffd100%s|r en materiales: %s",
         LOOT_NOPRICE   = "|cff33ff99CraftCheck|r: además has recuperado materiales: %s",
         ORDER_NEXT     = "Siguiente",
@@ -94,7 +106,7 @@ else
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: tooltip info |cffff0000disabled|r.",
         DELETED        = "|cff33ff99CraftCheck|r: character %s removed.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: character %s not found.",
-        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cc orders [reset] - tips earned from crafting orders\n  /cc autonext - jump to the next order after completing one\n  /cc confirm - show/skip the own-reagents confirmation when completing an order\n  /cc farm - gathering session window\n  /cv - Value module: crafting profit vs the Auction House",
+        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cc orders [reset] - tips earned from crafting orders\n  /cc autonext - jump to the next order after completing one\n  /cc confirm - show/skip the own-reagents confirmation when completing an order\n  /cc farm - gathering session window\n  /cc profit - gold earned today with professions (whole account)\n  /cv - Value module: crafting profit vs the Auction House",
         LIST_HEADER    = "|cff33ff99CraftCheck|r saved characters:",
         UNKNOWN_REALM  = "Unknown realm",
         CONC           = "Concentration",
@@ -116,6 +128,18 @@ else
         REWARD_GOLD    = "|cff33ff99CraftCheck|r: Congratulations! You got an extra |cffffd100%s|r in returned materials: %s",
         REWARD_NOPRICE = "|cff33ff99CraftCheck|r: Congratulations! Returned materials: %s",
         REWARDS_TOTAL  = "rewards",
+        PROFIT_TODAY   = "Professions today",
+        PROFIT_TIPS    = "tips",
+        PROFIT_RETURNED = "returned",
+        PROFIT_REWARDS = "rewards",
+        PROFIT_BAGS    = "packages",
+        PROFIT_SPENT   = "spent",
+        PROFIT_ORDERS  = "orders",
+        PROFIT_HEADER  = "|cff33ff99CraftCheck|r gold earned today with professions:",
+        PROFIT_DAYTOTAL = "Day total",
+        PROFIT_LAST7   = "Last 7 days:",
+        PROFIT_NONE    = "nothing yet",
+        BAG_GOLD       = "|cff33ff99CraftCheck|r: package opened, |cffffd100%s|r: %s",
         LOOT_GOLD      = "|cff33ff99CraftCheck|r: you also got back |cffffd100%s|r in materials: %s",
         LOOT_NOPRICE   = "|cff33ff99CraftCheck|r: you also got back materials: %s",
         ORDER_NEXT     = "Next",
@@ -1107,6 +1131,116 @@ local function RewardValue(link, count)
     return price * count
 end
 
+-------------------------------------------------------------------------------
+-- Libro de ganancias de profesiones: por día y personaje, para toda la cuenta
+--   tips = propinas netas, returned = materiales devueltos, rewards = recompensas
+--   con precio en la AH, bags = contenido de los paquetes, spent = reagentes puestos
+-------------------------------------------------------------------------------
+local LEDGER_KEYS = { "tips", "returned", "rewards", "bags", "spent", "orders" }
+local orderSpent = {}   -- orderID -> coste de los reagentes que puso el fabricante
+
+local function DayKey(t) return date("%Y-%m-%d", t or time()) end
+
+local function LedgerEntry()
+    ns.db.ledger = ns.db.ledger or {}
+    local day = DayKey()
+    if not ns.db.ledger[day] then
+        ns.db.ledger[day] = {}
+        local limit = DayKey(time() - 60 * 86400)   -- se conservan 60 días
+        for k in pairs(ns.db.ledger) do
+            if k < limit then ns.db.ledger[k] = nil end
+        end
+    end
+    local key = ns.playerKey or "?"
+    local e = ns.db.ledger[day][key]
+    if not e then
+        e = { tips = 0, returned = 0, rewards = 0, bags = 0, spent = 0, orders = 0 }
+        ns.db.ledger[day][key] = e
+    end
+    return e
+end
+
+function ns.LedgerAdd(field, amount)
+    if not ns.db or not amount or amount == 0 then return end
+    local e = LedgerEntry()
+    e[field] = (e[field] or 0) + amount
+    if ns.OnOrderRecorded then ns.OnOrderRecorded() end
+end
+
+function ns.LedgerNet(e)
+    return (e.tips or 0) + (e.returned or 0) + (e.rewards or 0) + (e.bags or 0) - (e.spent or 0)
+end
+
+-- Totales de un día sumando todos los personajes
+function ns.LedgerDay(day)
+    local tot = { tips = 0, returned = 0, rewards = 0, bags = 0, spent = 0, orders = 0 }
+    for _, e in pairs(((ns.db and ns.db.ledger) or {})[day or DayKey()] or {}) do
+        for _, k in ipairs(LEDGER_KEYS) do tot[k] = tot[k] + (e[k] or 0) end
+    end
+    return tot, ns.LedgerNet(tot)
+end
+
+local function SignedGold(c)
+    return (c < 0 and "-" or "") .. ns.MoneyGold(math.abs(c))
+end
+
+local function LedgerBreakdown(e)
+    local parts = {}
+    if (e.tips or 0) > 0 then parts[#parts + 1] = L.PROFIT_TIPS .. " " .. ns.MoneyGold(e.tips) end
+    if (e.returned or 0) > 0 then parts[#parts + 1] = L.PROFIT_RETURNED .. " " .. ns.MoneyGold(e.returned) end
+    if (e.rewards or 0) > 0 then parts[#parts + 1] = L.PROFIT_REWARDS .. " " .. ns.MoneyGold(e.rewards) end
+    if (e.bags or 0) > 0 then parts[#parts + 1] = L.PROFIT_BAGS .. " " .. ns.MoneyGold(e.bags) end
+    if (e.spent or 0) > 0 then parts[#parts + 1] = L.PROFIT_SPENT .. " -" .. ns.MoneyGold(e.spent) end
+    return table.concat(parts, " · ")
+end
+
+-- "Profesiones hoy: 1.234g (propinas ... · gastado ...)"
+function ns.LedgerSummary(tot, net)
+    local color = net >= 0 and "|cff40ff40" or "|cffff4040"
+    local detail = LedgerBreakdown(tot)
+    return "|cffffd100" .. L.PROFIT_TODAY .. ":|r " .. color .. SignedGold(net) .. "|r"
+        .. (detail ~= "" and ("  |cffaaaaaa(" .. detail .. ")|r") or "")
+end
+
+function ns.LedgerPrint()
+    print(L.PROFIT_HEADER)
+    local day = DayKey()
+    local chars = ((ns.db.ledger or {})[day]) or {}
+    local keys = {}
+    for key in pairs(chars) do keys[#keys + 1] = key end
+    table.sort(keys)
+    for _, key in ipairs(keys) do
+        local e = chars[key]
+        local c = ns.db.chars[key]
+        local who = c and (ns.FactionIcon(c.faction) .. " " .. ns.ClassColorText(c.class, key)) or key
+        local net = ns.LedgerNet(e)
+        print("  " .. who .. ": " .. (net >= 0 and "|cff40ff40" or "|cffff4040") .. SignedGold(net) .. "|r  |cffaaaaaa"
+            .. (e.orders or 0) .. " " .. L.PROFIT_ORDERS .. " · " .. LedgerBreakdown(e) .. "|r")
+    end
+    if #keys == 0 then print("  " .. L.PROFIT_NONE) end
+    local tot, net = ns.LedgerDay(day)
+    print("  |cffffd100" .. L.PROFIT_DAYTOTAL .. ":|r " .. (net >= 0 and "|cff40ff40" or "|cffff4040") .. SignedGold(net) .. "|r  |cffaaaaaa"
+        .. LedgerBreakdown(tot) .. "|r")
+    print("  |cffffd100" .. L.PROFIT_LAST7 .. "|r")
+    for i = 1, 7 do
+        local d = DayKey(time() - i * 86400)
+        if (ns.db.ledger or {})[d] then
+            local _, n = ns.LedgerDay(d)
+            print("    " .. d .. ": " .. (n >= 0 and "|cff40ff40" or "|cffff4040") .. SignedGold(n) .. "|r")
+        end
+    end
+end
+
+-- Recompensas sin precio en la AH (paquetes): se recuerdan para valorar su contenido al abrirlas
+local function LearnPackages(o)
+    if not ns.db then return end
+    ns.db.packages = ns.db.packages or {}
+    for _, r in ipairs(o.rewards or {}) do
+        local id = tonumber(r.link:match("item:(%d+)"))
+        if id and not RewardValue(r.link, 1) then ns.db.packages[id] = true end
+    end
+end
+
 
 function ns.MoneyGold(copper)
     local gold = math.floor((copper or 0) / 10000)
@@ -1165,6 +1299,7 @@ local lootWatch  -- { until = GetTime, skip = {itemID=true}, items = {itemID -> 
 
 local function StartLootWatch(o)
     Debug("loot watch started for order " .. tostring(o.itemID))
+    LearnPackages(o)
     local skip = {}
     if o.itemID then skip[o.itemID] = true end
     for _, r in ipairs(o.rewards or {}) do
@@ -1192,15 +1327,78 @@ local function FinishLootWatch()
             local c = ns.playerKey and ns.db.chars[ns.playerKey]
             if c and c.orders then
                 c.orders.rewards = (c.orders.rewards or 0) + total
-                if ns.OnOrderRecorded then ns.OnOrderRecorded() end
             end
+            ns.LedgerAdd("returned", total)
         else
             print(string.format(L.REWARD_NOPRICE, list))
         end
     end)
 end
 
+-- Paquetes de recompensa: al abrir uno conocido se valora lo que sale (objetos y oro)
+local bagWatch
+
+local function FinishBagWatch()
+    local w = bagWatch
+    if not w then return end
+    if GetTime() < w.deadline then
+        C_Timer.After(w.deadline - GetTime() + 0.1, FinishBagWatch)
+        return
+    end
+    bagWatch = nil
+    local parts, total = {}, 0
+    for _, id in ipairs(w.order) do
+        local e = w.items[id]
+        parts[#parts + 1] = e.link .. (e.count > 1 and (" x" .. e.count) or "")
+        local val = RewardValue(e.link, e.count)
+        if val then total = total + val end
+    end
+    local moneyGain = GetMoney() - w.money
+    if moneyGain > 0 then
+        total = total + moneyGain
+        parts[#parts + 1] = GetMoneyString(moneyGain, true)
+    end
+    if total > 0 then
+        print(string.format(L.BAG_GOLD, GetMoneyString(math.floor(total), true), table.concat(parts, ", ")))
+        ns.LedgerAdd("bags", total)
+    end
+end
+
+if C_Container and type(C_Container.UseContainerItem) == "function" then
+    hooksecurefunc(C_Container, "UseContainerItem", function(bag, slot)
+        if not ns.db or not ns.db.packages or not bag or not slot then return end
+        local ok, id = pcall(C_Container.GetContainerItemID, bag, slot)
+        if not ok or not id or not ns.db.packages[id] then return end
+        if bagWatch then
+            bagWatch.deadline = GetTime() + 3
+            bagWatch.skip[id] = true
+            return
+        end
+        bagWatch = { deadline = GetTime() + 3, money = GetMoney(), items = {}, order = {}, skip = { [id] = true } }
+        C_Timer.After(3.1, FinishBagWatch)
+    end)
+end
+
+local function AddLootTo(w, msg)
+    local link = msg:match("(|c[^|]-|Hitem:[^|]-|h%[.-%]|h|r)")
+    if not link then return end
+    local id = tonumber(link:match("item:(%d+)"))
+    if not id or w.skip[id] then return end
+    local count = tonumber(msg:match("|h|r%s*x(%d+)")) or 1
+    local e = w.items[id]
+    if e then
+        e.count = e.count + count
+    else
+        w.items[id] = { link = link, count = count }
+        w.order[#w.order + 1] = id
+    end
+end
+
 function ns.OnLootMessage(msg)
+    if bagWatch and not IsSecret(msg) and type(msg) == "string" and GetTime() <= bagWatch.deadline then
+        AddLootTo(bagWatch, msg)
+        return
+    end
     local w = lootWatch
     if not w or IsSecret(msg) or type(msg) ~= "string" then return end
     if GetTime() > w.deadline then return end
@@ -1232,6 +1430,19 @@ local function RecordFulfilledOrder(orderID)
     bucket.n = bucket.n + 1
     bucket.gold = bucket.gold + earned
     c.orders[o.otype] = bucket
+    -- Libro de ganancias: propina neta, reagentes puestos y recompensas con precio
+    LearnPackages(o)
+    local rewardGold = 0
+    for _, r in ipairs(o.rewards or {}) do
+        local val = RewardValue(r.link, r.count)
+        if val then rewardGold = rewardGold + val end
+    end
+    local entry = LedgerEntry()
+    entry.tips = entry.tips + earned
+    entry.rewards = entry.rewards + rewardGold
+    entry.spent = entry.spent + (orderSpent[orderID] or 0)
+    entry.orders = entry.orders + 1
+    orderSpent[orderID] = nil
     c.orders.log = c.orders.log or {}
     table.insert(c.orders.log, 1, { t = time(), otype = o.otype, gold = earned, itemID = o.itemID, customer = o.customer })
     while #c.orders.log > 50 do table.remove(c.orders.log) end
@@ -1280,6 +1491,15 @@ local function ClaimedOrderCache()
     return nil
 end
 
+function ns.CaptureOrderSpent()
+    if not ns.ValueCrafterReagentCost or not C_CraftingOrders or not C_CraftingOrders.GetClaimedOrder then return end
+    local ok, order = pcall(C_CraftingOrders.GetClaimedOrder)
+    if not ok or type(order) ~= "table" or not order.orderID then return end
+    local cost = ns.ValueCrafterReagentCost()
+    if cost and cost > 0 then orderSpent[order.orderID] = cost end
+    Debug("order reagents spent: " .. tostring(cost))
+end
+
 local function OrderViewShown()
     local view = ProfessionsFrame and ProfessionsFrame.OrdersPage and ProfessionsFrame.OrdersPage.OrderView
     return view and view:IsShown()
@@ -1290,6 +1510,7 @@ if C_TradeSkillUI and type(C_TradeSkillUI.CraftRecipe) == "function" then
         if not OrderViewShown() then return end
         local o = ClaimedOrderCache()
         if o then StartLootWatch(o) end
+        ns.CaptureOrderSpent()
     end)
 end
 if C_TradeSkillUI and type(C_TradeSkillUI.RecraftRecipe) == "function" then
@@ -1297,6 +1518,7 @@ if C_TradeSkillUI and type(C_TradeSkillUI.RecraftRecipe) == "function" then
         if not OrderViewShown() then return end
         local o = ClaimedOrderCache()
         if o then StartLootWatch(o) end
+        ns.CaptureOrderSpent()
     end)
 end
 
@@ -1710,6 +1932,8 @@ local function SlashHandler(msg)
     elseif cmd == "confirmar" or cmd == "confirm" then
         ns.db.settings.skipOwnReagentsConfirm = not ns.db.settings.skipOwnReagentsConfirm
         print(ns.db.settings.skipOwnReagentsConfirm and L.SKIPCONFIRM_ON or L.SKIPCONFIRM_OFF)
+    elseif cmd == "ganancias" or cmd == "profit" or cmd == "oro" then
+        ns.LedgerPrint()
     elseif cmd == "farm" or cmd == "farmeo" then
         if ns.FarmToggle then ns.FarmToggle() end
     elseif cmd == "autonext" then

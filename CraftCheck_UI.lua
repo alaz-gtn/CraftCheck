@@ -583,6 +583,11 @@ local function CreateMinimapButton()
         GameTooltip:SetOwner(self, "ANCHOR_LEFT")
         GameTooltip:SetText(L.MINIMAP_TIP1)
         GameTooltip:AddLine(L.MINIMAP_TIP2, 1, 1, 1, true)
+        if ns.LedgerDay and ns.LedgerSummary then
+            local tot, net = ns.LedgerDay()
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine(ns.LedgerSummary(tot, net), 1, 1, 1, true)
+        end
         GameTooltip:Show()
     end)
     minimapButton:SetScript("OnLeave", function() GameTooltip:Hide() end)

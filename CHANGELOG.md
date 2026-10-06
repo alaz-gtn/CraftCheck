@@ -2,6 +2,7 @@
 
 ## v1.5.0
 
+- New account-wide "Professions today" ledger: tips, returned materials, order rewards with an Auction House price and the contents of reward packages when you open them, minus the cost of the reagents you provided. Shown in the profession side panel, on the minimap button tooltip and with `/cc profit` (per character, day total and the last 7 days).
 - New FarmCheck module: `/cc farm` (or Shift-click the minimap button) opens a gathering session window with Start, Pause/Resume, Finish (with confirmation) and Reset. Everything looted from Herbalism and Mining nodes (Fishing optional) is counted with its Auction House value: total gold, gold per hour (live), per-profession gold and gold per hour, node counts and a sorted item list.
 - Sessions auto-pause after 3 minutes without gathering (idle time is not counted) and resume on the next node; a session survives a reload or logout (restored paused).
 - Finished sessions are kept in a history (date, character, duration, gold, gold/h) with a per-session breakdown on hover.
