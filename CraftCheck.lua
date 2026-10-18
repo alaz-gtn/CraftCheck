@@ -29,7 +29,7 @@ if isES then
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: información en tooltip |cffff0000desactivada|r.",
         DELETED        = "|cff33ff99CraftCheck|r: personaje %s eliminado.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: no se encontró el personaje %s.",
-        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cc ordenes [reset] - propinas cobradas por órdenes de fabricación\n  /cc autonext - pasar a la siguiente orden al completar una\n  /cc confirmar - mostrar/omitir la confirmación de usar tus propios reagentes\n  /cc farmeo - ventana de sesiones de recolección\n  /cc ganancias - oro ganado hoy con las profesiones (toda la cuenta)\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
+        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cc ordenes [reset] - propinas cobradas por órdenes de fabricación\n  /cc autonext - pasar a la siguiente orden al completar una\n  /cc confirmar - mostrar/omitir la confirmación de usar tus propios reagentes\n  /cc farmeo - ventana de sesiones de recolección\n  /cc ganancias - oro ganado hoy con las profesiones (toda la cuenta)\n  /cc aviso - activar/desactivar el aviso sonoro cuando enlazan algo que puedes fabricar\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
         LIST_HEADER    = "|cff33ff99CraftCheck|r personajes guardados:",
         UNKNOWN_REALM  = "Reino desconocido",
         CONC           = "Concentración",
@@ -63,6 +63,9 @@ if isES then
         PROFIT_LAST7   = "Últimos 7 días:",
         PROFIT_NONE    = "nada todavía",
         BAG_GOLD       = "|cff33ff99CraftCheck|r: paquete abierto, |cffffd100%s|r: %s",
+        ALERT_MSG      = "|cff33ff99CraftCheck|r: %s ha enlazado %s y puedes fabricarlo con %s",
+        ALERT_ON       = "|cff33ff99CraftCheck|r: aviso sonoro de peticiones |cff00ff00activado|r.",
+        ALERT_OFF      = "|cff33ff99CraftCheck|r: aviso sonoro de peticiones |cffff0000desactivado|r.",
         LOOT_GOLD      = "|cff33ff99CraftCheck|r: además has recuperado |cffffd100%s|r en materiales: %s",
         LOOT_NOPRICE   = "|cff33ff99CraftCheck|r: además has recuperado materiales: %s",
         ORDER_NEXT     = "Siguiente",
@@ -106,7 +109,7 @@ else
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: tooltip info |cffff0000disabled|r.",
         DELETED        = "|cff33ff99CraftCheck|r: character %s removed.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: character %s not found.",
-        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cc orders [reset] - tips earned from crafting orders\n  /cc autonext - jump to the next order after completing one\n  /cc confirm - show/skip the own-reagents confirmation when completing an order\n  /cc farm - gathering session window\n  /cc profit - gold earned today with professions (whole account)\n  /cv - Value module: crafting profit vs the Auction House",
+        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cc orders [reset] - tips earned from crafting orders\n  /cc autonext - jump to the next order after completing one\n  /cc confirm - show/skip the own-reagents confirmation when completing an order\n  /cc farm - gathering session window\n  /cc profit - gold earned today with professions (whole account)\n  /cc alert - toggle the sound alert when someone links something you can craft\n  /cv - Value module: crafting profit vs the Auction House",
         LIST_HEADER    = "|cff33ff99CraftCheck|r saved characters:",
         UNKNOWN_REALM  = "Unknown realm",
         CONC           = "Concentration",
@@ -140,6 +143,9 @@ else
         PROFIT_LAST7   = "Last 7 days:",
         PROFIT_NONE    = "nothing yet",
         BAG_GOLD       = "|cff33ff99CraftCheck|r: package opened, |cffffd100%s|r: %s",
+        ALERT_MSG      = "|cff33ff99CraftCheck|r: %s linked %s and you can craft it with %s",
+        ALERT_ON       = "|cff33ff99CraftCheck|r: sound alert for craft requests |cff00ff00enabled|r.",
+        ALERT_OFF      = "|cff33ff99CraftCheck|r: sound alert for craft requests |cffff0000disabled|r.",
         LOOT_GOLD      = "|cff33ff99CraftCheck|r: you also got back |cffffd100%s|r in materials: %s",
         LOOT_NOPRICE   = "|cff33ff99CraftCheck|r: you also got back materials: %s",
         ORDER_NEXT     = "Next",
@@ -222,6 +228,7 @@ local function InitDB()
     if s.gearOnly == nil then s.gearOnly = true end
     if s.autoNext == nil then s.autoNext = true end
     if s.skipOwnReagentsConfirm == nil then s.skipOwnReagentsConfirm = true end
+    if s.craftAlert == nil then s.craftAlert = true end
     s.minimap = s.minimap or {}
     if s.minimap.hide == nil then s.minimap.hide = false end
     if s.minimap.angle == nil then s.minimap.angle = 220 end
@@ -969,8 +976,37 @@ local function OnChatMessage(msg, sender)
     for id in msg:gmatch("|Hitem:(%d+)") do
         ns.recentLinkers[tonumber(id)] = { sender = sender, t = time() }
     end
+    if ns.CheckCraftAlert then ns.CheckCraftAlert(msg, sender) end
 end
 ns.OnChatMessage = OnChatMessage
+
+-- Aviso sonoro: alguien enlaza en el chat un objeto que puedes fabricar (mismo grupo de reinos)
+local alertSeen, lastAlertSound = {}, 0
+function ns.CheckCraftAlert(msg, sender)
+    if not ns.db or not ns.db.settings.craftAlert or not ns.GetCraftersForItem then return end
+    for link in msg:gmatch("(|c[^|]-|Hitem:[^|]-|h%[.-%]|h|r)") do
+        local itemID = tonumber(link:match("item:(%d+)"))
+        local crafters = itemID and ns.GetCraftersForItem(itemID, true)
+        if crafters and #crafters > 0 then
+            local key = sender .. ":" .. itemID
+            if not alertSeen[key] or time() - alertSeen[key] > 120 then
+                alertSeen[key] = time()
+                if GetTime() - lastAlertSound > 3 then
+                    lastAlertSound = GetTime()
+                    PlaySound(SOUNDKIT and SOUNDKIT.READY_CHECK or 8960, "Master")
+                end
+                local names = {}
+                for i = 1, math.min(3, #crafters) do
+                    local c = crafters[i].char
+                    names[#names + 1] = ns.ClassColorText(c.class, c.name) .. " |cffffd100(" .. (crafters[i].prof.name or "?") .. ")|r"
+                end
+                local who = "|Hplayer:" .. sender .. "|h[" .. sender .. "]|h"
+                print(string.format(L.ALERT_MSG, who, link, table.concat(names, ", ")))
+            end
+            return
+        end
+    end
+end
 
 function ns.GetRecentLinker(itemID)
     local e = itemID and ns.recentLinkers[itemID]
@@ -1932,6 +1968,10 @@ local function SlashHandler(msg)
     elseif cmd == "confirmar" or cmd == "confirm" then
         ns.db.settings.skipOwnReagentsConfirm = not ns.db.settings.skipOwnReagentsConfirm
         print(ns.db.settings.skipOwnReagentsConfirm and L.SKIPCONFIRM_ON or L.SKIPCONFIRM_OFF)
+    elseif cmd == "aviso" or cmd == "alert" or cmd == "sonido" then
+        ns.db.settings.craftAlert = not ns.db.settings.craftAlert
+        print(ns.db.settings.craftAlert and L.ALERT_ON or L.ALERT_OFF)
+        if ns.db.settings.craftAlert then PlaySound(SOUNDKIT and SOUNDKIT.READY_CHECK or 8960, "Master") end
     elseif cmd == "ganancias" or cmd == "profit" or cmd == "oro" then
         ns.LedgerPrint()
     elseif cmd == "farm" or cmd == "farmeo" then

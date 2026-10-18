@@ -6,6 +6,8 @@
 
 **Tooltip** – hover or click any item and see which of your characters can craft it (same connected-realm group only), with profession and remaining Concentration.
 
+**Sound alert** – when someone links in chat an item one of your characters can craft, you hear a ready-check sound and get a chat line saying who asked and which of your characters can make it (`/cc alert` toggles it).
+
 **One-click whisper** – click a character in the tooltip: a whisper opens to the player who linked the item, message and max-quality link already typed. Just press Enter.
 
 **Profession browser** – `/cc` or the minimap button: all your characters, professions and recipes by realm group. Search, epic-gear filter, click to paste your message, Shift-click to link.
@@ -42,6 +44,7 @@ Open each profession once on each character. That's it.
 - `/cc confirm` – show or skip the own-reagents confirmation (skipped by default)
 - `/cc farm` – gathering session window
 - `/cc profit` – gold earned today with professions, whole account
+- `/cc alert` – sound alert when someone links something you can craft (on by default)
 - `/cv top [n]` · `/cv ilvl N` (gear item level, default 232) · `/cv span N`
 - `/cv full` / `/cv all` / `/cv scan` / `/cv reset` – own AH scanning (without Auctionator)
 

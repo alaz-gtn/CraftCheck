@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.0
+
+- Sound alert: when someone links in chat an item one of your characters can craft (same connected-realm group), a ready-check sound plays and a chat line tells you who asked and which of your characters can make it. Repeats from the same player and item are ignored for 2 minutes. `/cc alert` toggles it.
+
 ## v1.5.0
 
 - New account-wide "Professions today" ledger: tips, returned materials, order rewards with an Auction House price and the contents of reward packages when you open them, minus the cost of the reagents you provided. Shown in the profession side panel, on the minimap button tooltip and with `/cc profit` (per character, day total and the last 7 days).
