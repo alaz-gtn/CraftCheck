@@ -64,6 +64,7 @@ if isES then
         PROFIT_NONE    = "nada todavía",
         BAG_GOLD       = "|cff33ff99CraftCheck|r: paquete abierto, |cffffd100%s|r: %s",
         ALERT_MSG      = "|cff33ff99CraftCheck|r: %s ha enlazado %s y puedes fabricarlo con %s",
+        ALERT_KW       = "|cff33ff99CraftCheck|r: %s busca %s, puedes con %s: |cffaaaaaa%s|r",
         ALERT_ON       = "|cff33ff99CraftCheck|r: aviso sonoro de peticiones |cff00ff00activado|r.",
         ALERT_OFF      = "|cff33ff99CraftCheck|r: aviso sonoro de peticiones |cffff0000desactivado|r.",
         LOOT_GOLD      = "|cff33ff99CraftCheck|r: además has recuperado |cffffd100%s|r en materiales: %s",
@@ -144,6 +145,7 @@ else
         PROFIT_NONE    = "nothing yet",
         BAG_GOLD       = "|cff33ff99CraftCheck|r: package opened, |cffffd100%s|r: %s",
         ALERT_MSG      = "|cff33ff99CraftCheck|r: %s linked %s and you can craft it with %s",
+        ALERT_KW       = "|cff33ff99CraftCheck|r: %s is looking for %s, you can with %s: |cffaaaaaa%s|r",
         ALERT_ON       = "|cff33ff99CraftCheck|r: sound alert for craft requests |cff00ff00enabled|r.",
         ALERT_OFF      = "|cff33ff99CraftCheck|r: sound alert for craft requests |cffff0000disabled|r.",
         LOOT_GOLD      = "|cff33ff99CraftCheck|r: you also got back |cffffd100%s|r in materials: %s",
@@ -981,7 +983,91 @@ end
 ns.OnChatMessage = OnChatMessage
 
 -- Aviso sonoro: alguien enlaza en el chat un objeto que puedes fabricar (mismo grupo de reinos)
+-- o pide una profesión que tienes ("busco herrero", "LF BS"...)
 local alertSeen, lastAlertSound = {}, 0
+
+local function AlertSound()
+    if GetTime() - lastAlertSound > 3 then
+        lastAlertSound = GetTime()
+        PlaySound(SOUNDKIT and SOUNDKIT.READY_CHECK or 8960, "Master")
+    end
+end
+
+-- Palabras que indican una petición
+local REQUEST_WORDS = {
+    "busco", "buscando", "necesito", "alguien", "algun", "algún", "quien", "quién", "hay algun", "pago",
+    "lf", "lfw", "wtb", "looking for", "need", "anyone", "any ", "who can", "pst",
+}
+-- Nombres de oficio y abreviaturas por línea de habilidad
+local PROF_WORDS = {
+    [164] = { "herrero", "herrera", "herrer", "blacksmith", "bs" },
+    [197] = { "sastre", "tailor" },
+    [165] = { "peletero", "peletera", "peleter", "leatherworker", "leatherworking", "lw" },
+    [755] = { "joyero", "joyera", "joyer", "jeweler", "jeweller", "jewelcrafter", "jc" },
+    [171] = { "alquimista", "alquimia", "alchemist", "alchemy", "alch" },
+    [333] = { "encantador", "encantadora", "encantamiento", "enchanter", "enchant", "ench" },
+    [202] = { "ingeniero", "ingeniera", "ingenier", "engineer", "engi" },
+    [773] = { "inscriptor", "inscriptora", "escriba", "inscripci", "scribe", "inscription", "insc" },
+}
+
+local function HasWord(text, word)
+    if #word <= 4 and not word:find(" ") then
+        -- abreviaturas: palabra completa
+        return text:find("%f[%w]" .. word .. "%f[%W]") ~= nil
+    end
+    return text:find(word, 1, true) ~= nil
+end
+
+-- Profesiones (skillLine) de tus personajes en el grupo de reinos actual: skillLine -> lista de entradas
+local function GroupProfessions()
+    local out = {}
+    for key, c in pairs(ns.db.chars) do
+        if c.realm and ns.currentGroupSet[c.realm] then
+            for profID, p in pairs(c.profs or {}) do
+                out[profID] = out[profID] or {}
+                table.insert(out[profID], { key = key, char = c, prof = p })
+            end
+        end
+    end
+    return out
+end
+
+local function CheckKeywordAlert(msg, sender)
+    local text = msg:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|c[^|]-:", ""):gsub("|r", ""):gsub("|H.-|h", ""):gsub("|h", ""):lower()
+    local isRequest = false
+    for _, w in ipairs(REQUEST_WORDS) do
+        if HasWord(text, w) then isRequest = true break end
+    end
+    if not isRequest then return end
+    local mine = GroupProfessions()
+    for profID, entries in pairs(mine) do
+        local words = PROF_WORDS[profID] or {}
+        local pname = entries[1].prof.name and entries[1].prof.name:lower()
+        local hit = pname and text:find(pname, 1, true)
+        if not hit then
+            for _, w in ipairs(words) do
+                if HasWord(text, w) then hit = true break end
+            end
+        end
+        if hit then
+            local key = sender .. ":p" .. profID
+            if not alertSeen[key] or time() - alertSeen[key] > 120 then
+                alertSeen[key] = time()
+                AlertSound()
+                local names = {}
+                for i = 1, math.min(3, #entries) do
+                    local c = entries[i].char
+                    names[#names + 1] = ns.ClassColorText(c.class, c.name)
+                end
+                local who = "|Hplayer:" .. sender .. "|h[" .. sender .. "]|h"
+                local snippet = msg:gsub("|", "")
+                if #snippet > 90 then snippet = snippet:sub(1, 90) .. "..." end
+                print(string.format(L.ALERT_KW, who, "|cffffd100" .. (entries[1].prof.name or "?") .. "|r", table.concat(names, ", "), snippet))
+            end
+            return
+        end
+    end
+end
 function ns.CheckCraftAlert(msg, sender)
     if not ns.db or not ns.db.settings.craftAlert or not ns.GetCraftersForItem then return end
     for link in msg:gmatch("(|c[^|]-|Hitem:[^|]-|h%[.-%]|h|r)") do
@@ -991,10 +1077,7 @@ function ns.CheckCraftAlert(msg, sender)
             local key = sender .. ":" .. itemID
             if not alertSeen[key] or time() - alertSeen[key] > 120 then
                 alertSeen[key] = time()
-                if GetTime() - lastAlertSound > 3 then
-                    lastAlertSound = GetTime()
-                    PlaySound(SOUNDKIT and SOUNDKIT.READY_CHECK or 8960, "Master")
-                end
+                AlertSound()
                 local names = {}
                 for i = 1, math.min(3, #crafters) do
                     local c = crafters[i].char
@@ -1006,6 +1089,8 @@ function ns.CheckCraftAlert(msg, sender)
             return
         end
     end
+    -- Sin objeto fabricable enlazado: buscar "busco <profesión>"
+    CheckKeywordAlert(msg, sender)
 end
 
 function ns.GetRecentLinker(itemID)

@@ -6,7 +6,7 @@
 
 **Tooltip** – hover or click any item and see which of your characters can craft it (same connected-realm group only), with profession and remaining Concentration.
 
-**Sound alert** – when someone links in chat an item one of your characters can craft, you hear a ready-check sound and get a chat line saying who asked and which of your characters can make it (`/cc alert` toggles it).
+**Sound alert** – when someone links in chat an item one of your characters can craft, or asks for one of your professions ("LF blacksmith", "busco joyero", "LF BS"), you hear a ready-check sound and get a chat line saying who asked and which of your characters can make it (`/cc alert` toggles it).
 
 **One-click whisper** – click a character in the tooltip: a whisper opens to the player who linked the item, message and max-quality link already typed. Just press Enter.
 
