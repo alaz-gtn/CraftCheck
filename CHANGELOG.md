@@ -2,6 +2,7 @@
 
 ## v1.6.3
 
+- Choose the alert sound with `/cc sound` (lists the options) and `/cc sound N` (sets and plays it): ready check, small bell, alarm clock, church bells, raid warning, whisper, map ping, level up.
 - Sound alert: an on-screen notice (like a raid warning) appears together with the sound, so you see the request even if the chat is not in view.
 - The chat line ends with the words that triggered it, for example ("busco" + "herrero").
 - Profession requests only count crafting professions (no gathering, cooking or fishing), and the overly generic words "any" and "pst" no longer count as a request.
