@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.2
+
+- Fix: the profession-request alert no longer triggers on words inside linked item names (for example a Tailoring item called "Enchanter's Bonnet" was taken as a request for an enchanter).
+
 ## v1.6.1
 
 - Sound alert: the chat line now shows the channel the request came from (Trade, Services...), is printed just after the original message, and shows the request as readable text (item names instead of raw link codes).

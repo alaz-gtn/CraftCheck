@@ -1052,7 +1052,8 @@ local function AlertPrint(text)
 end
 
 local function CheckKeywordAlert(msg, sender, channel)
-    local text = msg:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|c[^|]-:", ""):gsub("|r", ""):gsub("|H.-|h", ""):gsub("|h", ""):lower()
+    -- Se quitan los enlaces enteros (nombre incluido): "Enchanter's Bonnet" no es una petición de encantador
+    local text = msg:gsub("|H.-|h.-|h", " "):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|c[^|]-:", ""):gsub("|r", ""):gsub("%[.-%]", " "):lower()
     local isRequest = false
     for _, w in ipairs(REQUEST_WORDS) do
         if HasWord(text, w) then isRequest = true break end
