@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.1
+
+- Sound alert: the chat line now shows the channel the request came from (Trade, Services...), is printed just after the original message, and shows the request as readable text (item names instead of raw link codes).
+
 ## v1.6.0
 
 - Sound alert: when someone links in chat an item one of your characters can craft (same connected-realm group), a ready-check sound plays and a chat line tells you who asked and which of your characters can make it. It also triggers when someone asks for one of your professions without linking an item ("LF blacksmith", "busco joyero", "LF BS"). Repeats from the same player are ignored for 2 minutes. `/cc alert` toggles it.

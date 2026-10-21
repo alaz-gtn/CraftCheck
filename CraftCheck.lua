@@ -970,7 +970,7 @@ end
 ns.recentLinkers = {}
 local LINKER_TTL = 15 * 60
 
-local function OnChatMessage(msg, sender)
+local function OnChatMessage(msg, sender, channel)
     if IsSecret(msg) or IsSecret(sender) then return end
     if type(msg) ~= "string" or type(sender) ~= "string" or sender == "" then return end
     local me = ns.playerKey
@@ -978,7 +978,7 @@ local function OnChatMessage(msg, sender)
     for id in msg:gmatch("|Hitem:(%d+)") do
         ns.recentLinkers[tonumber(id)] = { sender = sender, t = time() }
     end
-    if ns.CheckCraftAlert then ns.CheckCraftAlert(msg, sender) end
+    if ns.CheckCraftAlert then ns.CheckCraftAlert(msg, sender, channel) end
 end
 ns.OnChatMessage = OnChatMessage
 
@@ -1032,7 +1032,26 @@ local function GroupProfessions()
     return out
 end
 
-local function CheckKeywordAlert(msg, sender)
+-- Texto legible de un mensaje: enlaces como [Nombre], sin colores ni iconos
+local function CleanChatText(msg)
+    local t = msg:gsub("|H.-|h(.-)|h", "%1")
+    t = t:gsub("|A.-|a", ""):gsub("|T.-|t", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|cn[^:]-:", ""):gsub("|r", "")
+    t = t:gsub("|", "")
+    if #t > 110 then t = t:sub(1, 110) .. "..." end
+    return t
+end
+
+local function ChannelTag(channel)
+    if type(channel) ~= "string" or channel == "" or IsSecret(channel) then return "" end
+    return " |cffaaaaaa[" .. channel .. "]|r"
+end
+
+-- Se escribe un instante después para que quede debajo del mensaje original
+local function AlertPrint(text)
+    C_Timer.After(0.3, function() print(text) end)
+end
+
+local function CheckKeywordAlert(msg, sender, channel)
     local text = msg:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|c[^|]-:", ""):gsub("|r", ""):gsub("|H.-|h", ""):gsub("|h", ""):lower()
     local isRequest = false
     for _, w in ipairs(REQUEST_WORDS) do
@@ -1059,16 +1078,14 @@ local function CheckKeywordAlert(msg, sender)
                     local c = entries[i].char
                     names[#names + 1] = ns.ClassColorText(c.class, c.name)
                 end
-                local who = "|Hplayer:" .. sender .. "|h[" .. sender .. "]|h"
-                local snippet = msg:gsub("|", "")
-                if #snippet > 90 then snippet = snippet:sub(1, 90) .. "..." end
-                print(string.format(L.ALERT_KW, who, "|cffffd100" .. (entries[1].prof.name or "?") .. "|r", table.concat(names, ", "), snippet))
+                local who = "|Hplayer:" .. sender .. "|h[" .. sender .. "]|h" .. ChannelTag(channel)
+                AlertPrint(string.format(L.ALERT_KW, who, "|cffffd100" .. (entries[1].prof.name or "?") .. "|r", table.concat(names, ", "), CleanChatText(msg)))
             end
             return
         end
     end
 end
-function ns.CheckCraftAlert(msg, sender)
+function ns.CheckCraftAlert(msg, sender, channel)
     if not ns.db or not ns.db.settings.craftAlert or not ns.GetCraftersForItem then return end
     for link in msg:gmatch("(|c[^|]-|Hitem:[^|]-|h%[.-%]|h|r)") do
         local itemID = tonumber(link:match("item:(%d+)"))
@@ -1083,14 +1100,14 @@ function ns.CheckCraftAlert(msg, sender)
                     local c = crafters[i].char
                     names[#names + 1] = ns.ClassColorText(c.class, c.name) .. " |cffffd100(" .. (crafters[i].prof.name or "?") .. ")|r"
                 end
-                local who = "|Hplayer:" .. sender .. "|h[" .. sender .. "]|h"
-                print(string.format(L.ALERT_MSG, who, link, table.concat(names, ", ")))
+                local who = "|Hplayer:" .. sender .. "|h[" .. sender .. "]|h" .. ChannelTag(channel)
+                AlertPrint(string.format(L.ALERT_MSG, who, link, table.concat(names, ", ")))
             end
             return
         end
     end
     -- Sin objeto fabricable enlazado: buscar "busco <profesión>"
-    CheckKeywordAlert(msg, sender)
+    CheckKeywordAlert(msg, sender, channel)
 end
 
 function ns.GetRecentLinker(itemID)
@@ -2126,7 +2143,7 @@ local CHAT_EVENTS = {
 }
 for _, ev in ipairs(CHAT_EVENTS) do frame:RegisterEvent(ev) end
 
-frame:SetScript("OnEvent", function(self, event, arg1, arg2)
+frame:SetScript("OnEvent", function(self, event, arg1, arg2, _arg3, chanName)
     if event:sub(1, 15) == "CRAFTINGORDERS_" then
         ns.HandleOrderEvent(event, arg1, arg2)
         return
@@ -2140,7 +2157,7 @@ frame:SetScript("OnEvent", function(self, event, arg1, arg2)
         return
     end
     if event:sub(1, 9) == "CHAT_MSG_" then
-        OnChatMessage(arg1, arg2)
+        OnChatMessage(arg1, arg2, chanName)
         return
     end
     if event == "ADDON_LOADED" and arg1 == "Blizzard_Professions" then
