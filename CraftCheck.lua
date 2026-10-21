@@ -439,16 +439,45 @@ function ns.FillItemMeta(r)
     return changed
 end
 
--- ¿Es un objeto de equipo/herramienta épico (o mejor)?
+-- Calidad máxima que puede salir de la receta: la del enlace a calidad máxima o la mejor de sus objetos.
+-- El objeto base de algunas recetas (PvP, por ejemplo) es azul pero a rango máximo sale épico.
+local function LinkQuality(link)
+    if type(link) ~= "string" then return nil end
+    local q = tonumber(link:match("|cnIQ(%d+)"))
+    if q then return q end
+    if C_Item and C_Item.GetItemInfo then
+        local ok, _, _, v = pcall(C_Item.GetItemInfo, link)
+        if ok and type(v) == "number" then return v end
+    end
+    local color = link:match("|c(%x%x%x%x%x%x%x%x)")
+    return color and QUALITY_BY_COLOR[color:lower()] or nil
+end
+
+function ns.BestQuality(r)
+    ns.FillItemMeta(r)
+    local best = r.quality or 0
+    local lq = LinkQuality(r.maxLink)
+    if lq and lq > best then best = lq end
+    for i = 2, #(r.items or {}) do
+        local id = r.items[i]
+        if C_Item and C_Item.GetItemQualityByID then
+            local ok, v = pcall(C_Item.GetItemQualityByID, id)
+            if ok and type(v) == "number" and v > best then best = v end
+        end
+    end
+    return best
+end
+
+-- ¿Es un objeto de equipo/herramienta épico (o mejor) a calidad máxima?
 function ns.IsEpicGear(r)
     ns.FillItemMeta(r)
-    return r.equip and r.equip ~= false and (r.quality or 0) >= 4
+    return r.equip and r.equip ~= false and ns.BestQuality(r) >= 4
 end
 
 -- Nombre coloreado por rareza
 function ns.QualityName(r)
     local name = r.name or "?"
-    local q = r.quality
+    local q = ns.BestQuality and ns.BestQuality(r) or r.quality
     if q and ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[q] and ITEM_QUALITY_COLORS[q].hex then
         return ITEM_QUALITY_COLORS[q].hex .. name .. "|r"
     end
