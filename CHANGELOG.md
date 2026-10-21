@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6.3
+
+- Sound alert: an on-screen notice (like a raid warning) appears together with the sound, so you see the request even if the chat is not in view.
+- The chat line ends with the words that triggered it, for example ("busco" + "herrero").
+- Profession requests only count crafting professions (no gathering, cooking or fishing), and the overly generic words "any" and "pst" no longer count as a request.
+
 ## v1.6.2
 
 - Fix: the profession-request alert no longer triggers on words inside linked item names (for example a Tailoring item called "Enchanter's Bonnet" was taken as a request for an enchanter).

@@ -996,7 +996,7 @@ end
 -- Palabras que indican una petición
 local REQUEST_WORDS = {
     "busco", "buscando", "necesito", "alguien", "algun", "algún", "quien", "quién", "hay algun", "pago",
-    "lf", "lfw", "wtb", "looking for", "need", "anyone", "any ", "who can", "pst",
+    "lf", "lfw", "wtb", "looking for", "need", "anyone", "who can",
 }
 -- Nombres de oficio y abreviaturas por línea de habilidad
 local PROF_WORDS = {
@@ -1046,6 +1046,13 @@ local function ChannelTag(channel)
     return " |cffaaaaaa[" .. channel .. "]|r"
 end
 
+-- Aviso grande en el centro de la pantalla, por si el chat no está a la vista
+local function AlertScreen(text)
+    if RaidNotice_AddMessage and RaidWarningFrame then
+        pcall(RaidNotice_AddMessage, RaidWarningFrame, "CraftCheck - " .. text, { r = 0.2, g = 1, b = 0.6 })
+    end
+end
+
 -- Se escribe un instante después para que quede debajo del mensaje original
 local function AlertPrint(text)
     C_Timer.After(0.3, function() print(text) end)
@@ -1054,19 +1061,20 @@ end
 local function CheckKeywordAlert(msg, sender, channel)
     -- Se quitan los enlaces enteros (nombre incluido): "Enchanter's Bonnet" no es una petición de encantador
     local text = msg:gsub("|H.-|h.-|h", " "):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|c[^|]-:", ""):gsub("|r", ""):gsub("%[.-%]", " "):lower()
-    local isRequest = false
+    local reqWord
     for _, w in ipairs(REQUEST_WORDS) do
-        if HasWord(text, w) then isRequest = true break end
+        if HasWord(text, w) then reqWord = w break end
     end
-    if not isRequest then return end
+    if not reqWord then return end
     local mine = GroupProfessions()
     for profID, entries in pairs(mine) do
-        local words = PROF_WORDS[profID] or {}
-        local pname = entries[1].prof.name and entries[1].prof.name:lower()
-        local hit = pname and text:find(pname, 1, true)
-        if not hit then
+        -- Solo profesiones de fabricación (no recolección, cocina ni pesca)
+        local words = PROF_WORDS[profID]
+        local pname = words and entries[1].prof.name and entries[1].prof.name:lower()
+        local hit = pname and text:find(pname, 1, true) and pname
+        if words and not hit then
             for _, w in ipairs(words) do
-                if HasWord(text, w) then hit = true break end
+                if HasWord(text, w) then hit = w break end
             end
         end
         if hit then
@@ -1080,7 +1088,9 @@ local function CheckKeywordAlert(msg, sender, channel)
                     names[#names + 1] = ns.ClassColorText(c.class, c.name)
                 end
                 local who = "|Hplayer:" .. sender .. "|h[" .. sender .. "]|h" .. ChannelTag(channel)
-                AlertPrint(string.format(L.ALERT_KW, who, "|cffffd100" .. (entries[1].prof.name or "?") .. "|r", table.concat(names, ", "), CleanChatText(msg)))
+                AlertPrint(string.format(L.ALERT_KW, who, "|cffffd100" .. (entries[1].prof.name or "?") .. "|r", table.concat(names, ", "), CleanChatText(msg))
+                    .. string.format(" |cff808080(\"%s\" + \"%s\")|r", strtrim(reqWord), hit))
+                AlertScreen(sender .. ": " .. (entries[1].prof.name or "?"))
             end
             return
         end
@@ -1103,6 +1113,7 @@ function ns.CheckCraftAlert(msg, sender, channel)
                 end
                 local who = "|Hplayer:" .. sender .. "|h[" .. sender .. "]|h" .. ChannelTag(channel)
                 AlertPrint(string.format(L.ALERT_MSG, who, link, table.concat(names, ", ")))
+                AlertScreen(sender .. ": " .. (link:match("%[(.-)%]") or "?"))
             end
             return
         end
