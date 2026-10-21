@@ -953,7 +953,8 @@ function ns.GetOpenWhisperTarget()
     if not lw then return nil end
     local age = GetTime() - lw.t
     local shown = eb and eb:IsShown()
-    if age <= 600 and (shown or age <= 120) then
+    -- Solo si el cuadro de chat sigue abierto: un susurro antiguo no debe recibir el mensaje
+    if age <= 600 and shown then
         return lw.target, lw.bn
     end
     return nil
@@ -1166,9 +1167,9 @@ function ns.CheckCraftAlert(msg, sender, channel)
     CheckKeywordAlert(msg, sender, channel)
 end
 
-function ns.GetRecentLinker(itemID)
+function ns.GetRecentLinker(itemID, maxAge)
     local e = itemID and ns.recentLinkers[itemID]
-    if e and (time() - e.t) <= LINKER_TTL then return e.sender end
+    if e and (time() - e.t) <= (maxAge or LINKER_TTL) then return e.sender end
     return nil
 end
 
@@ -1189,6 +1190,9 @@ function ns.WhisperMessage(charKey, itemID, itemLink, target)
         if typedName then
             target = typedName
             if typedBox then pcall(typedBox.SetText, typedBox, "") end
+        end
+        if not target and itemID then
+            target = ns.GetRecentLinker(itemID, 300)
         end
         if not target then
             target, bn = ns.GetOpenWhisperTarget()
@@ -2056,6 +2060,8 @@ local function OnTooltipHyperlinkClick(self, link, text, button)
     local target
     local lc = ns.lastClicked
     if lc and lc.itemID == itemID and lc.sender then target = lc.sender end
+    -- Si no se detectó la línea clicada, el último que enlazó ese objeto (nunca un susurro anterior)
+    target = target or ns.GetRecentLinker(itemID)
     ns.WhisperMessage(charKey, itemID, itemLink, target)
 end
 

@@ -2,6 +2,7 @@
 
 ## v1.6.3
 
+- Fix: the whisper could go to someone you had whispered before instead of the player who linked the item. The player who linked the item now always takes priority, and an earlier whisper is only reused if its chat box is still open.
 - Choose the alert sound with `/cc sound` (lists the options) and `/cc sound N` (sets and plays it): ready check, small bell, alarm clock, church bells, raid warning, whisper, map ping, level up.
 - Sound alert: an on-screen notice (like a raid warning) appears together with the sound, so you see the request even if the chat is not in view.
 - The chat line ends with the words that triggered it, for example ("busco" + "herrero").
