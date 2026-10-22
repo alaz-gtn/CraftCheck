@@ -10,6 +10,8 @@
 
 **One-click whisper** – click a character in the tooltip: a whisper opens to the player who linked the item, message and max-quality link already typed. Just press Enter.
 
+**Recent requests** – a **Requests** button in the `/cc` panel lists the last people who asked you for something (alerts and whispers to any of your characters), with what they wanted. Click to whisper them with your message ready.
+
 **Profession browser** – `/cc` or the minimap button: all your characters, professions and recipes by realm group. Search, epic-gear filter, click to paste your message, Shift-click to link.
 
 **Crafting value** – on patterns, recipes and craftable items: difficulty, reagent cost, Auction House price and profit after the 5% cut. Gear at your target item level; potions, flasks and enchants at gold quality, with silver-reagent and gold-reagent costs per unit.
