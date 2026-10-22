@@ -324,6 +324,95 @@ local function CreatePanel()
     title:SetPoint("TOP", frame, "TOP", 0, -18)
     title:SetText(L.PANEL_TITLE)
 
+    -- Últimas peticiones: botón arriba a la izquierda y lista desplegable
+    local reqBtn = CreateFrame("Button", "CraftCheckRequestsButton", frame, "UIPanelButtonTemplate")
+    reqBtn:SetSize(130, 22)
+    reqBtn:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, -16)
+    local reqList = CreateFrame("Frame", "CraftCheckRequestsList", frame, "BackdropTemplate")
+    reqList:SetPoint("TOPLEFT", reqBtn, "BOTTOMLEFT", 0, -2)
+    reqList:SetWidth(520)
+    reqList:SetFrameStrata("DIALOG")
+    reqList:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        tile = true, tileSize = 16, edgeSize = 14, insets = { left = 4, right = 4, top = 4, bottom = 4 } })
+    reqList:SetBackdropColor(0.04, 0.04, 0.07, 0.97)
+    reqList:SetBackdropBorderColor(0.55, 0.45, 0.25, 1)
+    reqList:EnableMouse(true)
+    reqList:Hide()
+    local reqTitle = reqList:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    reqTitle:SetPoint("TOPLEFT", 10, -8)
+    reqTitle:SetText(L.REQ_TITLE)
+    local reqHint = reqList:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    reqHint:SetPoint("TOPLEFT", reqTitle, "BOTTOMLEFT", 0, -2)
+    reqHint:SetText(L.REQ_HINT)
+    local reqRows = {}
+    local REQ_ROW_H, REQ_MAX = 18, 15
+
+    local function RefreshRequests()
+        local list = ns.db.requests or {}
+        reqBtn:SetText(string.format(L.REQ_BUTTON, #list))
+        if not reqList:IsShown() then return end
+        local n = math.min(#list, REQ_MAX)
+        for i = 1, math.max(n, 1) do
+            local row = reqRows[i]
+            if not row then
+                row = CreateFrame("Button", nil, reqList)
+                row:SetHeight(REQ_ROW_H)
+                row:SetPoint("TOPLEFT", 8, -40 - (i - 1) * REQ_ROW_H)
+                row:SetPoint("RIGHT", reqList, "RIGHT", -8, 0)
+                row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+                local hl = row:CreateTexture(nil, "HIGHLIGHT")
+                hl:SetAllPoints(); hl:SetColorTexture(1, 1, 1, 0.08)
+                row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+                row.text:SetPoint("LEFT", 2, 0); row.text:SetPoint("RIGHT", -2, 0)
+                row.text:SetJustifyH("LEFT"); row.text:SetWordWrap(false)
+                row:SetScript("OnClick", function(self, button)
+                    if not self.entry then return end
+                    if button == "RightButton" then
+                        local l = ns.db.requests or {}
+                        for k = #l, 1, -1 do if l[k] == self.entry then table.remove(l, k) end end
+                        RefreshRequests()
+                    else
+                        ns.WhisperRequester(self.entry)
+                    end
+                end)
+                row:SetScript("OnEnter", function(self)
+                    local e = self.entry
+                    if not e then return end
+                    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                    GameTooltip:SetText(e.name, 1, 0.82, 0)
+                    if e.text and e.text ~= "" then GameTooltip:AddLine(e.text, 1, 1, 1, true) end
+                    local c = e.me and ns.db.chars[e.me]
+                    if c then GameTooltip:AddLine("-> " .. ns.ClassColorText(c.class, c.name), 0.7, 0.7, 0.7) end
+                    GameTooltip:AddLine(date("%d/%m %H:%M", e.t), 0.6, 0.6, 0.6)
+                    GameTooltip:Show()
+                end)
+                row:SetScript("OnLeave", function() GameTooltip:Hide() end)
+                reqRows[i] = row
+            end
+            local e = list[i]
+            row.entry = e
+            if e then
+                local c = e.me and ns.db.chars[e.me]
+                local to = c and ("  |cff808080-> |r" .. ns.ClassColorText(c.class, c.name)) or ""
+                local what = e.link or ("|cffaaaaaa" .. (e.text or "") .. "|r")
+                row.text:SetText(string.format("|cffaaaaaa%-6s|r |cffffffff%s|r%s  %s", ns.TimeAgo(e.t), e.name, to, what))
+            else
+                row.text:SetText("|cffaaaaaa" .. L.REQ_EMPTY .. "|r")
+            end
+            row:Show()
+        end
+        for i = math.max(n, 1) + 1, #reqRows do reqRows[i]:Hide() end
+        reqList:SetHeight(48 + math.max(n, 1) * REQ_ROW_H)
+    end
+    ns.UI_RequestsChanged = RefreshRequests
+    reqBtn:SetScript("OnClick", function()
+        reqList:SetShown(not reqList:IsShown())
+        RefreshRequests()
+    end)
+    frame:HookScript("OnShow", RefreshRequests)
+    frame:HookScript("OnHide", function() reqList:Hide() end)
+    RefreshRequests()
+
     -- Botón cerrar
     local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -6, -6)

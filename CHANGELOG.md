@@ -2,6 +2,7 @@
 
 ## v1.6.3
 
+- Recent requests: a "Requests (N)" button at the top left of the `/cc` panel lists the last people who asked you for something (sound alerts and whispers you received), one per person, with time, which of your characters they whispered and what they asked for. Click to whisper them (with your message when you can craft the item), right-click to remove. Also `/cc requests`. Kept for 3 days, account-wide.
 - Profession panel: the "Epic gear only" filter now looks at the quality the item reaches at max rank, so recipes whose base item is blue but craft as epic (for example PvP gear) are shown, and names are colored by that quality.
 - Fix: the whisper could go to someone you had whispered before instead of the player who linked the item. The player who linked the item now always takes priority, and an earlier whisper is only reused if its chat box is still open.
 - Choose the alert sound with `/cc sound` (lists the options) and `/cc sound N` (sets and plays it): ready check, small bell, alarm clock, church bells, raid warning, whisper, map ping, level up.

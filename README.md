@@ -46,6 +46,7 @@ Open each profession once on each character. That's it.
 - `/cc profit` – gold earned today with professions, whole account
 - `/cc alert` – sound alert when someone links something you can craft (on by default)
 - `/cc sound [N]` – list or choose the alert sound (bells, alarm clock, raid warning...)
+- `/cc requests` – last people who asked you for something (also the Requests button in the `/cc` panel)
 - `/cv top [n]` · `/cv ilvl N` (gear item level, default 232) · `/cv span N`
 - `/cv full` / `/cv all` / `/cv scan` / `/cv reset` – own AH scanning (without Auctionator)
 
