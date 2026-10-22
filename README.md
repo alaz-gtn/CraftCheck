@@ -6,7 +6,7 @@
 
 **Tooltip** – hover or click any item and see which of your characters can craft it (same connected-realm group only), with profession and remaining Concentration.
 
-**Sound alert** – when someone links in chat an item one of your characters can craft, or asks for one of your professions ("LF blacksmith", "busco joyero", "LF BS"), you hear a ready-check sound and get a chat line saying who asked and which of your characters can make it (`/cc alert` toggles it).
+**Sound alert** – when someone links in chat an item one of your characters can craft, or asks for one of your professions ("LF blacksmith", "busco joyero", "LF BS"), you hear a sound and get a chat line saying who asked and which of your characters can make it, with a **[Reply]** link and a bindable key that open the whisper with your message ready (`/cc alert` toggles it).
 
 **One-click whisper** – click a character in the tooltip: a whisper opens to the player who linked the item, message and max-quality link already typed. Just press Enter.
 
@@ -47,6 +47,7 @@ Open each profession once on each character. That's it.
 - `/cc alert` – sound alert when someone links something you can craft (on by default)
 - `/cc sound [N]` – list or choose the alert sound (bells, alarm clock, raid warning...)
 - `/cc requests` – last people who asked you for something (also the Requests button in the `/cc` panel)
+- `/cc reply` – reply to the last alert (also a keybinding: Options > Keybindings > AddOns > CraftCheck)
 - `/cv top [n]` · `/cv ilvl N` (gear item level, default 232) · `/cv span N`
 - `/cv full` / `/cv all` / `/cv scan` / `/cv reset` – own AH scanning (without Auctionator)
 

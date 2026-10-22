@@ -29,7 +29,7 @@ if isES then
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: información en tooltip |cffff0000desactivada|r.",
         DELETED        = "|cff33ff99CraftCheck|r: personaje %s eliminado.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: no se encontró el personaje %s.",
-        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cc ordenes [reset] - propinas cobradas por órdenes de fabricación\n  /cc autonext - pasar a la siguiente orden al completar una\n  /cc confirmar - mostrar/omitir la confirmación de usar tus propios reagentes\n  /cc farmeo - ventana de sesiones de recolección\n  /cc ganancias - oro ganado hoy con las profesiones (toda la cuenta)\n  /cc aviso - activar/desactivar el aviso sonoro cuando enlazan algo que puedes fabricar\n  /cc sonido [N] - elegir el sonido del aviso\n  /cc peticiones - últimas personas que te han pedido algo\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
+        HELP           = "|cff33ff99CraftCheck|r comandos:\n  /cc - abrir/cerrar panel\n  /cc tooltip - activar/desactivar tooltip\n  /cc minimapa - mostrar/ocultar botón de minimapa\n  /cc borrar Nombre-Reino - eliminar un personaje\n  /cc lista - listar personajes guardados\n  /cc escanear - forzar escaneo de la profesión abierta\n  /cc mensaje <texto> - cambiar el mensaje del susurro ({personaje}, {objeto})\n  /cc mensaje reset - restablecer el mensaje\n  /cc mensajeyo <texto> - mensaje cuando el fabricante eres tú\n  /cc ordenes [reset] - propinas cobradas por órdenes de fabricación\n  /cc autonext - pasar a la siguiente orden al completar una\n  /cc confirmar - mostrar/omitir la confirmación de usar tus propios reagentes\n  /cc farmeo - ventana de sesiones de recolección\n  /cc ganancias - oro ganado hoy con las profesiones (toda la cuenta)\n  /cc aviso - activar/desactivar el aviso sonoro cuando enlazan algo que puedes fabricar\n  /cc sonido [N] - elegir el sonido del aviso\n  /cc peticiones - últimas personas que te han pedido algo\n  /cc responder - responder a la última petición (también con una tecla: Opciones > Atajos > CraftCheck)\n  /cv - módulo Value: beneficio de tus recetas frente a la AH",
         LIST_HEADER    = "|cff33ff99CraftCheck|r personajes guardados:",
         UNKNOWN_REALM  = "Reino desconocido",
         CONC           = "Concentración",
@@ -68,6 +68,10 @@ if isES then
         ALERT_ON       = "|cff33ff99CraftCheck|r: aviso sonoro de peticiones |cff00ff00activado|r.",
         SOUND_LIST     = "|cff33ff99CraftCheck|r sonidos del aviso (|cffffd100/cc sonido N|r para elegir):",
         REQ_BUTTON     = "Peticiones (%d)",
+        REPLY_LINK     = "Responder",
+        REPLY_NONE     = "|cff33ff99CraftCheck|r: no hay ninguna petición reciente a la que responder.",
+        BIND_HEADER    = "CraftCheck",
+        BIND_REPLY     = "Responder a la última petición",
         REQ_TITLE      = "Últimas peticiones",
         REQ_HINT       = "Click: susurrar (con tu mensaje si puedes fabricarlo) · Clic derecho: quitar",
         REQ_EMPTY      = "Nadie te ha pedido nada todavía.",
@@ -118,7 +122,7 @@ else
         TOOLTIP_OFF    = "|cff33ff99CraftCheck|r: tooltip info |cffff0000disabled|r.",
         DELETED        = "|cff33ff99CraftCheck|r: character %s removed.",
         NOT_FOUND      = "|cff33ff99CraftCheck|r: character %s not found.",
-        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cc orders [reset] - tips earned from crafting orders\n  /cc autonext - jump to the next order after completing one\n  /cc confirm - show/skip the own-reagents confirmation when completing an order\n  /cc farm - gathering session window\n  /cc profit - gold earned today with professions (whole account)\n  /cc alert - toggle the sound alert when someone links something you can craft\n  /cc sound [N] - choose the alert sound\n  /cc requests - last people who asked you for something\n  /cv - Value module: crafting profit vs the Auction House",
+        HELP           = "|cff33ff99CraftCheck|r commands:\n  /cc - toggle panel\n  /cc tooltip - toggle tooltip info\n  /cc minimap - show/hide minimap button\n  /cc delete Name-Realm - remove a character\n  /cc list - list saved characters\n  /cc scan - force a scan of the open profession\n  /cc message <text> - change the whisper message ({character}, {item})\n  /cc message reset - reset the message\n  /cc selfmessage <text> - message when the crafter is you\n  /cc orders [reset] - tips earned from crafting orders\n  /cc autonext - jump to the next order after completing one\n  /cc confirm - show/skip the own-reagents confirmation when completing an order\n  /cc farm - gathering session window\n  /cc profit - gold earned today with professions (whole account)\n  /cc alert - toggle the sound alert when someone links something you can craft\n  /cc sound [N] - choose the alert sound\n  /cc requests - last people who asked you for something\n  /cc reply - reply to the last request (also bindable: Options > Keybindings > CraftCheck)\n  /cv - Value module: crafting profit vs the Auction House",
         LIST_HEADER    = "|cff33ff99CraftCheck|r saved characters:",
         UNKNOWN_REALM  = "Unknown realm",
         CONC           = "Concentration",
@@ -157,6 +161,10 @@ else
         ALERT_ON       = "|cff33ff99CraftCheck|r: sound alert for craft requests |cff00ff00enabled|r.",
         SOUND_LIST     = "|cff33ff99CraftCheck|r alert sounds (|cffffd100/cc sound N|r to choose):",
         REQ_BUTTON     = "Requests (%d)",
+        REPLY_LINK     = "Reply",
+        REPLY_NONE     = "|cff33ff99CraftCheck|r: there is no recent request to reply to.",
+        BIND_HEADER    = "CraftCheck",
+        BIND_REPLY     = "Reply to the last request",
         REQ_TITLE      = "Recent requests",
         REQ_HINT       = "Click: whisper (with your message if you can craft it) · Right-click: remove",
         REQ_EMPTY      = "Nobody has asked you for anything yet.",
@@ -1196,8 +1204,49 @@ local function AlertScreen(text)
 end
 
 -- Se escribe un instante después para que quede debajo del mensaje original
-local function AlertPrint(text)
-    C_Timer.After(0.3, function() print(text) end)
+local function AlertPrint(text, suffix)
+    C_Timer.After(0.3, function() print(text .. (suffix or "")) end)
+end
+
+-- Responder rápido: enlace [Responder] en el aviso y atajo de teclado a la última petición
+local lastAlert
+local replies = {}   -- id -> datos de la petición
+local replySeq = 0
+
+function ns.SetLastAlert(sender, itemID, charKey, link)
+    replySeq = replySeq + 1
+    local data = { sender = sender, itemID = itemID, charKey = charKey, link = link, t = GetTime() }
+    replies[replySeq] = data
+    replies[replySeq - 50] = nil
+    lastAlert = data
+    return "  |cff00ff00|Haddon:CraftCheck:reply:" .. replySeq .. "|h[" .. L.REPLY_LINK .. "]|h|r"
+end
+
+function ns.ReplyTo(data)
+    if not data or not data.sender then print(L.REPLY_NONE) return end
+    ns.WhisperMessage(data.charKey, data.itemID, data.link, data.sender)
+end
+
+function CraftCheck_ReplyLast()
+    if lastAlert and GetTime() - lastAlert.t < 15 * 60 then
+        ns.ReplyTo(lastAlert)
+    else
+        print(L.REPLY_NONE)
+    end
+end
+BINDING_HEADER_CRAFTCHECK = L.BIND_HEADER
+BINDING_NAME_CRAFTCHECK_REPLY = L.BIND_REPLY
+
+local function OnAddonLink(link)
+    if type(link) ~= "string" then return end
+    local kind, addonName, action, id = strsplit(":", link)
+    if kind ~= "addon" or addonName ~= "CraftCheck" or action ~= "reply" then return end
+    ns.ReplyTo(replies[tonumber(id) or 0])
+end
+if EventRegistry and EventRegistry.RegisterCallback then
+    EventRegistry:RegisterCallback("SetItemRef", function(_, link) OnAddonLink(link) end, "CraftCheckReply")
+else
+    hooksecurefunc("SetItemRef", OnAddonLink)
 end
 
 local function CheckKeywordAlert(msg, sender, channel)
@@ -1231,7 +1280,7 @@ local function CheckKeywordAlert(msg, sender, channel)
                 end
                 local who = "|Hplayer:" .. sender .. "|h[" .. sender .. "]|h" .. ChannelTag(channel)
                 AlertPrint(string.format(L.ALERT_KW, who, "|cffffd100" .. (entries[1].prof.name or "?") .. "|r", table.concat(names, ", "), CleanChatText(msg))
-                    .. string.format(" |cff808080(\"%s\" + \"%s\")|r", strtrim(reqWord), hit))
+                    .. string.format(" |cff808080(\"%s\" + \"%s\")|r", strtrim(reqWord), hit), ns.SetLastAlert(sender, nil, entries[1].key, nil))
                 AlertScreen(sender .. ": " .. (entries[1].prof.name or "?"))
                 ns.RecordRequest(sender, msg, "prof")
             end
@@ -1255,7 +1304,8 @@ function ns.CheckCraftAlert(msg, sender, channel)
                     names[#names + 1] = ns.ClassColorText(c.class, c.name) .. " |cffffd100(" .. (crafters[i].prof.name or "?") .. ")|r"
                 end
                 local who = "|Hplayer:" .. sender .. "|h[" .. sender .. "]|h" .. ChannelTag(channel)
-                AlertPrint(string.format(L.ALERT_MSG, who, link, table.concat(names, ", ")))
+                AlertPrint(string.format(L.ALERT_MSG, who, link, table.concat(names, ", ")),
+                    ns.SetLastAlert(sender, itemID, crafters[1].key, link))
                 AlertScreen(sender .. ": " .. (link:match("%[(.-)%]") or "?"))
                 ns.RecordRequest(sender, msg, "link")
             end
@@ -2231,6 +2281,8 @@ local function SlashHandler(msg)
     elseif cmd == "confirmar" or cmd == "confirm" then
         ns.db.settings.skipOwnReagentsConfirm = not ns.db.settings.skipOwnReagentsConfirm
         print(ns.db.settings.skipOwnReagentsConfirm and L.SKIPCONFIRM_ON or L.SKIPCONFIRM_OFF)
+    elseif cmd == "responder" or cmd == "reply" then
+        CraftCheck_ReplyLast()
     elseif cmd == "peticiones" or cmd == "requests" then
         ns.PrintRequests()
     elseif cmd == "sonido" or cmd == "sound" then

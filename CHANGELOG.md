@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.7.0
+
+- Faster replies: every alert line ends with a green [Reply] link that opens the whisper to that player with your message already typed (crafter and item link included). Press Enter and you are first.
+- Keybinding "Reply to the last request" (Options > Keybindings > AddOns > CraftCheck) and `/cc reply`: one key opens the whisper to whoever triggered the last alert.
+
 ## v1.6.3
 
 - Recent requests: a "Requests (N)" button at the top left of the `/cc` panel lists the last people who asked you for something (sound alerts and whispers you received), one per person, with time, which of your characters they whispered and what they asked for. Click to whisper them (with your message when you can craft the item), right-click to remove. Also `/cc requests`. Kept for 3 days, account-wide.

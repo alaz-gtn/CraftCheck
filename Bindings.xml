@@ -1,0 +1,5 @@
+<Bindings>
+    <Binding name="CRAFTCHECK_REPLY" header="CRAFTCHECK" category="ADDONS">
+        CraftCheck_ReplyLast()
+    </Binding>
+</Bindings>
