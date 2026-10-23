@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.7.1
+
+- Fix: when someone linked a low item level version of an item, the whisper repeated that low-level link. The whisper now always carries the max-quality link from your crafter's recipe.
+
 ## v1.7.0
 
 - Faster replies: every alert line ends with a green [Reply] link that opens the whisper to that player with your message already typed (crafter and item link included). Press Enter and you are first.

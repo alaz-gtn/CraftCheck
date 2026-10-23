@@ -1324,7 +1324,25 @@ end
 
 -- Abre un susurro al que pidió el objeto (si se sabe) con el mensaje ya escrito;
 -- si no se sabe, pega el mensaje en el chat activo.
+-- Enlace a calidad máxima del objeto según la receta del fabricante (no el que enlazó el cliente,
+-- que puede ser una versión de nivel bajo)
+function ns.MaxLinkFor(itemID, charKey)
+    if not itemID or not ns.GetCraftersForItem then return nil end
+    local crafters = ns.GetCraftersForItem(itemID, false) or {}
+    local fallback
+    for _, e in ipairs(crafters) do
+        local r = e.prof and e.prof.recipes and e.prof.recipes[e.recipeID]
+        local link = r and (r.maxLink or r.link)
+        if link and link:find("|H", 1, true) then
+            if e.key == charKey then return link end
+            fallback = fallback or link
+        end
+    end
+    return fallback
+end
+
 function ns.WhisperMessage(charKey, itemID, itemLink, target)
+    itemLink = ns.MaxLinkFor(itemID, charKey) or itemLink
     local msg = ns.BuildChatMessage(charKey, itemLink)
     local bn = false
     if not target then
