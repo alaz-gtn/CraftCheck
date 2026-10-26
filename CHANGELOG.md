@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.7.2
+
+- Fix: for crafted gear, the whisper showed a low rank (the game hands addons a low-rank link and chat displays the real rank). Gear is now written as the item name followed by "at max rank" instead of a misleading link. Consumables keep their link.
+
 ## v1.7.1
 
 - Fix: when someone linked a low item level version of an item, the whisper repeated that low-level link. The whisper now always carries the max-quality link from your crafter's recipe.

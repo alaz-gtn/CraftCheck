@@ -69,6 +69,7 @@ if isES then
         SOUND_LIST     = "|cff33ff99CraftCheck|r sonidos del aviso (|cffffd100/cc sonido N|r para elegir):",
         REQ_BUTTON     = "Peticiones (%d)",
         REPLY_LINK     = "Responder",
+        MAX_RANK       = "a rango máximo",
         REPLY_NONE     = "|cff33ff99CraftCheck|r: no hay ninguna petición reciente a la que responder.",
         BIND_HEADER    = "CraftCheck",
         BIND_REPLY     = "Responder a la última petición",
@@ -162,6 +163,7 @@ else
         SOUND_LIST     = "|cff33ff99CraftCheck|r alert sounds (|cffffd100/cc sound N|r to choose):",
         REQ_BUTTON     = "Requests (%d)",
         REPLY_LINK     = "Reply",
+        MAX_RANK       = "at max rank",
         REPLY_NONE     = "|cff33ff99CraftCheck|r: there is no recent request to reply to.",
         BIND_HEADER    = "CraftCheck",
         BIND_REPLY     = "Reply to the last request",
@@ -1329,6 +1331,20 @@ end
 function ns.MaxLinkFor(itemID, charKey)
     if not itemID or not ns.GetCraftersForItem then return nil end
     local crafters = ns.GetCraftersForItem(itemID, false) or {}
+    -- Equipo: el juego no da un enlace fiable del rango máximo (devuelve rangos bajos y el
+    -- chat lo muestra con el rango real), así que se pone el nombre y "a rango máximo"
+    for _, e in ipairs(crafters) do
+        local r = e.prof and e.prof.recipes and e.prof.recipes[e.recipeID]
+        if r and r.equip then
+            local baseID = (r.items and r.items[1]) or itemID
+            local name = C_Item and C_Item.GetItemInfo and C_Item.GetItemInfo(baseID)
+            name = (type(name) == "string" and name ~= "") and name or r.name
+            if name then
+                name = name:gsub("%s*|A.-|a", "")
+                return "[" .. name .. "] " .. L.MAX_RANK
+            end
+        end
+    end
     local fallback
     for _, e in ipairs(crafters) do
         local r = e.prof and e.prof.recipes and e.prof.recipes[e.recipeID]
