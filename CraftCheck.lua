@@ -1289,6 +1289,11 @@ function ns.CheckCraftAlert(msg, sender, channel)
     if not ns.db or not ns.db.settings.craftAlert or not ns.GetCraftersForItem then return end
     for link in msg:gmatch("(|c[^|]-|Hitem:[^|]-|h%[.-%]|h|r)") do
         local itemID = tonumber(link:match("item:(%d+)"))
+        -- Materiales de profesión (telas, lingotes, reactivos) no cuentan como petición
+        if itemID and C_Item and C_Item.GetItemInfoInstant then
+            local classID = select(6, C_Item.GetItemInfoInstant(itemID))
+            if classID == 7 or classID == 5 then itemID = nil end
+        end
         local crafters = itemID and ns.GetCraftersForItem(itemID, true)
         if crafters and #crafters > 0 then
             local key = sender .. ":" .. itemID

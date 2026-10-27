@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.7.4
+
+- Sound alert: linked profession materials (cloth, bolts, ore, reagents...) no longer trigger it, only items such as gear and consumables.
+
 ## v1.7.3
 
 - The whisper is now exactly the message you configured: no item link or item name is added. `{character}` still inserts your crafter's Name-Realm; `{item}` is ignored.
