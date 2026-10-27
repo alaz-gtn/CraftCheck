@@ -718,20 +718,15 @@ function ns.BuildChatMessage(charKey, itemLink)
     else
         template = ns.db.settings.msgTemplate or L.MSG_DEFAULT
     end
-    local values = { char = charKey or "?", item = itemLink or "" }
-    local hasItem = false
-    for key in template:gmatch("{(%a+)}") do
-        if PLACEHOLDERS[key:lower()] == "item" then hasItem = true end
-    end
+    -- El mensaje es exactamente el texto configurado: sin enlace ni nombre del objeto
+    local values = { char = charKey or "?", item = "" }
     local msg = template
-    if values.item ~= "" and not hasItem then
-        msg = msg .. " {objeto}"
-    end
     msg = msg:gsub("{(%a+)}", function(key)
         local kind = PLACEHOLDERS[key:lower()]
         if kind then return values[kind] end
         return nil
     end)
+    msg = msg:gsub("  +", " ")
     return (msg:gsub("%s+$", ""))
 end
 

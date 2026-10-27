@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.7.3
+
+- The whisper is now exactly the message you configured: no item link or item name is added. `{character}` still inserts your crafter's Name-Realm; `{item}` is ignored.
+
 ## v1.7.2
 
 - Fix: for crafted gear, the whisper showed a low rank (the game hands addons a low-rank link and chat displays the real rank). Gear is now written as the item name followed by "at max rank" instead of a misleading link. Consumables keep their link.
